@@ -1,0 +1,12 @@
+C:\Pessoal\mvpMakerApi\src\MvpMakerApi.Domain\bin\Debug\net9.0\MvpMakerApi.Domain.deps.json
+C:\Pessoal\mvpMakerApi\src\MvpMakerApi.Domain\bin\Debug\net9.0\MvpMakerApi.Domain.dll
+C:\Pessoal\mvpMakerApi\src\MvpMakerApi.Domain\bin\Debug\net9.0\MvpMakerApi.Domain.pdb
+C:\Pessoal\mvpMakerApi\src\MvpMakerApi.Domain\obj\Debug\net9.0\MvpMakerApi.Domain.GeneratedMSBuildEditorConfig.editorconfig
+C:\Pessoal\mvpMakerApi\src\MvpMakerApi.Domain\obj\Debug\net9.0\MvpMakerApi.Domain.AssemblyInfoInputs.cache
+C:\Pessoal\mvpMakerApi\src\MvpMakerApi.Domain\obj\Debug\net9.0\MvpMakerApi.Domain.AssemblyInfo.cs
+C:\Pessoal\mvpMakerApi\src\MvpMakerApi.Domain\obj\Debug\net9.0\MvpMakerApi.Domain.csproj.CoreCompileInputs.cache
+C:\Pessoal\mvpMakerApi\src\MvpMakerApi.Domain\obj\Debug\net9.0\MvpMakerApi.Domain.sourcelink.json
+C:\Pessoal\mvpMakerApi\src\MvpMakerApi.Domain\obj\Debug\net9.0\MvpMakerApi.Domain.dll
+C:\Pessoal\mvpMakerApi\src\MvpMakerApi.Domain\obj\Debug\net9.0\refint\MvpMakerApi.Domain.dll
+C:\Pessoal\mvpMakerApi\src\MvpMakerApi.Domain\obj\Debug\net9.0\MvpMakerApi.Domain.pdb
+C:\Pessoal\mvpMakerApi\src\MvpMakerApi.Domain\obj\Debug\net9.0\ref\MvpMakerApi.Domain.dll
