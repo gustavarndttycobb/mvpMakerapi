@@ -74,6 +74,9 @@ var jwtExpirationMinutes = int.Parse(builder.Configuration["Jwt:ExpirationMinute
 builder.Services.AddScoped<IJwtService, JwtService>(provider => 
     new JwtService(jwtSecretKey, jwtIssuer, jwtAudience, jwtExpirationMinutes));
 
+builder.Services.AddScoped<ICategoryService, CategoryService>();
+builder.Services.AddScoped<ITechnologyService, TechnologyService>();
+
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
