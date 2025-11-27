@@ -1,0 +1,6 @@
+@MvpMakerApi.Api_HostAddress = http://localhost:5244
+
+GET {{MvpMakerApi.Api_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
