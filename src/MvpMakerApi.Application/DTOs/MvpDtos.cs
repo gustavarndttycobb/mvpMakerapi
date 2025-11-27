@@ -52,3 +52,33 @@ public class CreateMvpRequest
     public string Status { get; set; } = "in progress";
     public List<string> Screenshots { get; set; } = new();
 }
+
+// Category DTOs
+public class CategoryDto
+{
+    public Guid Id { get; set; }
+    public string Name { get; set; } = string.Empty;
+    public string Description { get; set; } = string.Empty;
+    public DateTime CreatedAt { get; set; }
+}
+
+public class CreateCategoryRequest
+{
+    public string Name { get; set; } = string.Empty;
+    public string Description { get; set; } = string.Empty;
+}
+
+// Technology DTOs
+public class TechnologyDto
+{
+    public Guid Id { get; set; }
+    public string Name { get; set; } = string.Empty;
+    public string Description { get; set; } = string.Empty;
+    public DateTime CreatedAt { get; set; }
+}
+
+public class CreateTechnologyRequest
+{
+    public string Name { get; set; } = string.Empty;
+    public string Description { get; set; } = string.Empty;
+}
