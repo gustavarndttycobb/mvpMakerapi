@@ -2,6 +2,11 @@ using MvpMakerApi.Infrastructure;
 using MvpMakerApi.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Scalar.AspNetCore;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
+using MvpMakerApi.Application.Interfaces;
+using MvpMakerApi.Application.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -21,6 +26,35 @@ if (!string.IsNullOrEmpty(dbHost))
 }
 
 builder.Services.AddInfrastructure(connectionString!);
+
+// JWT Authentication
+var jwtSecretKey = builder.Configuration["Jwt:SecretKey"] ?? "your-super-secret-key-min-32-characters-long-for-security";
+var jwtIssuer = builder.Configuration["Jwt:Issuer"] ?? "MvpMakerApi";
+var jwtAudience = builder.Configuration["Jwt:Audience"] ?? "MvpMakerApiClient";
+var jwtExpirationMinutes = int.Parse(builder.Configuration["Jwt:ExpirationMinutes"] ?? "60");
+
+builder.Services.AddScoped<IJwtService, JwtService>(provider => 
+    new JwtService(jwtSecretKey, jwtIssuer, jwtAudience, jwtExpirationMinutes));
+
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+})
+.AddJwtBearer(options =>
+{
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuerSigningKey = true,
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSecretKey)),
+        ValidateIssuer = true,
+        ValidIssuer = jwtIssuer,
+        ValidateAudience = true,
+        ValidAudience = jwtAudience,
+        ValidateLifetime = true,
+        ClockSkew = TimeSpan.Zero
+    };
+});
 
 // CORS
 builder.Services.AddCors(options =>
@@ -42,6 +76,7 @@ app.MapScalarApiReference();
 
 app.UseCors("AllowAll");
 
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();

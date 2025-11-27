@@ -126,3 +126,11 @@ C:\Pessoal\mvpMakerApi\src\MvpMakerApi.Api\obj\Debug\net9.0\MvpMakerApi.Api.pdb
 C:\Pessoal\mvpMakerApi\src\MvpMakerApi.Api\obj\Debug\net9.0\MvpMakerApi.Api.genruntimeconfig.cache
 C:\Pessoal\mvpMakerApi\src\MvpMakerApi.Api\obj\Debug\net9.0\ref\MvpMakerApi.Api.dll
 C:\Pessoal\mvpMakerApi\src\MvpMakerApi.Api\bin\Debug\net9.0\Scalar.AspNetCore.dll
+C:\Pessoal\mvpMakerApi\src\MvpMakerApi.Api\bin\Debug\net9.0\Microsoft.AspNetCore.Authentication.JwtBearer.dll
+C:\Pessoal\mvpMakerApi\src\MvpMakerApi.Api\bin\Debug\net9.0\Microsoft.IdentityModel.Abstractions.dll
+C:\Pessoal\mvpMakerApi\src\MvpMakerApi.Api\bin\Debug\net9.0\Microsoft.IdentityModel.JsonWebTokens.dll
+C:\Pessoal\mvpMakerApi\src\MvpMakerApi.Api\bin\Debug\net9.0\Microsoft.IdentityModel.Logging.dll
+C:\Pessoal\mvpMakerApi\src\MvpMakerApi.Api\bin\Debug\net9.0\Microsoft.IdentityModel.Protocols.dll
+C:\Pessoal\mvpMakerApi\src\MvpMakerApi.Api\bin\Debug\net9.0\Microsoft.IdentityModel.Protocols.OpenIdConnect.dll
+C:\Pessoal\mvpMakerApi\src\MvpMakerApi.Api\bin\Debug\net9.0\Microsoft.IdentityModel.Tokens.dll
+C:\Pessoal\mvpMakerApi\src\MvpMakerApi.Api\bin\Debug\net9.0\System.IdentityModel.Tokens.Jwt.dll

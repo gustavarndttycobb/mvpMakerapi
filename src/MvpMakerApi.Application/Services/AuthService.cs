@@ -10,10 +10,12 @@ namespace MvpMakerApi.Application.Services;
 public class AuthService : IAuthService
 {
     private readonly IUserRepository _userRepository;
+    private readonly IJwtService _jwtService;
 
-    public AuthService(IUserRepository userRepository)
+    public AuthService(IUserRepository userRepository, IJwtService jwtService)
     {
         _userRepository = userRepository;
+        _jwtService = jwtService;
     }
 
     public async Task<UserResponse> LoginAsync(LoginRequest request)
@@ -24,7 +26,8 @@ public class AuthService : IAuthService
             throw new Exception("Invalid credentials");
         }
 
-        return new UserResponse(user.Id, user.Name, user.Email, "mock-jwt-token");
+        var token = _jwtService.GenerateToken(user.Id, user.Email, user.Name);
+        return new UserResponse(user.Id, user.Name, user.Email, token);
     }
 
     public async Task<UserResponse> RegisterAsync(RegisterRequest request)
@@ -44,7 +47,8 @@ public class AuthService : IAuthService
 
         await _userRepository.AddAsync(user);
 
-        return new UserResponse(user.Id, user.Name, user.Email, "mock-jwt-token");
+        var token = _jwtService.GenerateToken(user.Id, user.Email, user.Name);
+        return new UserResponse(user.Id, user.Name, user.Email, token);
     }
 
     private string HashPassword(string password)
