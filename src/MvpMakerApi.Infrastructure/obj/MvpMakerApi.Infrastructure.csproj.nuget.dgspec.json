@@ -1,0 +1,214 @@
+{
+  "format": 1,
+  "restore": {
+    "C:\\Pessoal\\mvpMakerApi\\src\\MvpMakerApi.Infrastructure\\MvpMakerApi.Infrastructure.csproj": {}
+  },
+  "projects": {
+    "C:\\Pessoal\\mvpMakerApi\\src\\MvpMakerApi.Application\\MvpMakerApi.Application.csproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "C:\\Pessoal\\mvpMakerApi\\src\\MvpMakerApi.Application\\MvpMakerApi.Application.csproj",
+        "projectName": "MvpMakerApi.Application",
+        "projectPath": "C:\\Pessoal\\mvpMakerApi\\src\\MvpMakerApi.Application\\MvpMakerApi.Application.csproj",
+        "packagesPath": "C:\\Users\\gustavo.arndt\\.nuget\\packages\\",
+        "outputPath": "C:\\Pessoal\\mvpMakerApi\\src\\MvpMakerApi.Application\\obj\\",
+        "projectStyle": "PackageReference",
+        "configFilePaths": [
+          "C:\\Users\\gustavo.arndt\\AppData\\Roaming\\NuGet\\NuGet.Config"
+        ],
+        "originalTargetFrameworks": [
+          "net9.0"
+        ],
+        "sources": {
+          "https://api.nuget.org/v3/index.json": {}
+        },
+        "frameworks": {
+          "net9.0": {
+            "targetAlias": "net9.0",
+            "projectReferences": {
+              "C:\\Pessoal\\mvpMakerApi\\src\\MvpMakerApi.Domain\\MvpMakerApi.Domain.csproj": {
+                "projectPath": "C:\\Pessoal\\mvpMakerApi\\src\\MvpMakerApi.Domain\\MvpMakerApi.Domain.csproj"
+              }
+            }
+          }
+        },
+        "warningProperties": {
+          "warnAsError": [
+            "NU1605"
+          ]
+        },
+        "restoreAuditProperties": {
+          "enableAudit": "true",
+          "auditLevel": "low",
+          "auditMode": "direct"
+        },
+        "SdkAnalysisLevel": "9.0.300"
+      },
+      "frameworks": {
+        "net9.0": {
+          "targetAlias": "net9.0",
+          "dependencies": {
+            "System.IdentityModel.Tokens.Jwt": {
+              "target": "Package",
+              "version": "[8.15.0, )"
+            }
+          },
+          "imports": [
+            "net461",
+            "net462",
+            "net47",
+            "net471",
+            "net472",
+            "net48",
+            "net481"
+          ],
+          "assetTargetFallback": true,
+          "warn": true,
+          "frameworkReferences": {
+            "Microsoft.NETCore.App": {
+              "privateAssets": "all"
+            }
+          },
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.307/PortableRuntimeIdentifierGraph.json"
+        }
+      }
+    },
+    "C:\\Pessoal\\mvpMakerApi\\src\\MvpMakerApi.Domain\\MvpMakerApi.Domain.csproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "C:\\Pessoal\\mvpMakerApi\\src\\MvpMakerApi.Domain\\MvpMakerApi.Domain.csproj",
+        "projectName": "MvpMakerApi.Domain",
+        "projectPath": "C:\\Pessoal\\mvpMakerApi\\src\\MvpMakerApi.Domain\\MvpMakerApi.Domain.csproj",
+        "packagesPath": "C:\\Users\\gustavo.arndt\\.nuget\\packages\\",
+        "outputPath": "C:\\Pessoal\\mvpMakerApi\\src\\MvpMakerApi.Domain\\obj\\",
+        "projectStyle": "PackageReference",
+        "configFilePaths": [
+          "C:\\Users\\gustavo.arndt\\AppData\\Roaming\\NuGet\\NuGet.Config"
+        ],
+        "originalTargetFrameworks": [
+          "net9.0"
+        ],
+        "sources": {
+          "https://api.nuget.org/v3/index.json": {}
+        },
+        "frameworks": {
+          "net9.0": {
+            "targetAlias": "net9.0",
+            "projectReferences": {}
+          }
+        },
+        "warningProperties": {
+          "warnAsError": [
+            "NU1605"
+          ]
+        },
+        "restoreAuditProperties": {
+          "enableAudit": "true",
+          "auditLevel": "low",
+          "auditMode": "direct"
+        },
+        "SdkAnalysisLevel": "9.0.300"
+      },
+      "frameworks": {
+        "net9.0": {
+          "targetAlias": "net9.0",
+          "imports": [
+            "net461",
+            "net462",
+            "net47",
+            "net471",
+            "net472",
+            "net48",
+            "net481"
+          ],
+          "assetTargetFallback": true,
+          "warn": true,
+          "frameworkReferences": {
+            "Microsoft.NETCore.App": {
+              "privateAssets": "all"
+            }
+          },
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.307/PortableRuntimeIdentifierGraph.json"
+        }
+      }
+    },
+    "C:\\Pessoal\\mvpMakerApi\\src\\MvpMakerApi.Infrastructure\\MvpMakerApi.Infrastructure.csproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "C:\\Pessoal\\mvpMakerApi\\src\\MvpMakerApi.Infrastructure\\MvpMakerApi.Infrastructure.csproj",
+        "projectName": "MvpMakerApi.Infrastructure",
+        "projectPath": "C:\\Pessoal\\mvpMakerApi\\src\\MvpMakerApi.Infrastructure\\MvpMakerApi.Infrastructure.csproj",
+        "packagesPath": "C:\\Users\\gustavo.arndt\\.nuget\\packages\\",
+        "outputPath": "C:\\Pessoal\\mvpMakerApi\\src\\MvpMakerApi.Infrastructure\\obj\\",
+        "projectStyle": "PackageReference",
+        "configFilePaths": [
+          "C:\\Users\\gustavo.arndt\\AppData\\Roaming\\NuGet\\NuGet.Config"
+        ],
+        "originalTargetFrameworks": [
+          "net9.0"
+        ],
+        "sources": {
+          "https://api.nuget.org/v3/index.json": {}
+        },
+        "frameworks": {
+          "net9.0": {
+            "targetAlias": "net9.0",
+            "projectReferences": {
+              "C:\\Pessoal\\mvpMakerApi\\src\\MvpMakerApi.Application\\MvpMakerApi.Application.csproj": {
+                "projectPath": "C:\\Pessoal\\mvpMakerApi\\src\\MvpMakerApi.Application\\MvpMakerApi.Application.csproj"
+              },
+              "C:\\Pessoal\\mvpMakerApi\\src\\MvpMakerApi.Domain\\MvpMakerApi.Domain.csproj": {
+                "projectPath": "C:\\Pessoal\\mvpMakerApi\\src\\MvpMakerApi.Domain\\MvpMakerApi.Domain.csproj"
+              }
+            }
+          }
+        },
+        "warningProperties": {
+          "warnAsError": [
+            "NU1605"
+          ]
+        },
+        "restoreAuditProperties": {
+          "enableAudit": "true",
+          "auditLevel": "low",
+          "auditMode": "direct"
+        },
+        "SdkAnalysisLevel": "9.0.300"
+      },
+      "frameworks": {
+        "net9.0": {
+          "targetAlias": "net9.0",
+          "dependencies": {
+            "Microsoft.EntityFrameworkCore.Tools": {
+              "include": "Runtime, Build, Native, ContentFiles, Analyzers, BuildTransitive",
+              "suppressParent": "All",
+              "target": "Package",
+              "version": "[9.0.0, )"
+            },
+            "Pomelo.EntityFrameworkCore.MySql": {
+              "target": "Package",
+              "version": "[9.0.0, )"
+            }
+          },
+          "imports": [
+            "net461",
+            "net462",
+            "net47",
+            "net471",
+            "net472",
+            "net48",
+            "net481"
+          ],
+          "assetTargetFallback": true,
+          "warn": true,
+          "frameworkReferences": {
+            "Microsoft.NETCore.App": {
+              "privateAssets": "all"
+            }
+          },
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.307/PortableRuntimeIdentifierGraph.json"
+        }
+      }
+    }
+  }
+}
