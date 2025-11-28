@@ -115,3 +115,42 @@ public class PagedResult<T>
     public bool HasPreviousPage => PageNumber > 1;
     public bool HasNextPage => PageNumber < TotalPages;
 }
+
+// Transaction DTOs
+public class TransactionDto
+{
+    public Guid Id { get; set; }
+    public MvpDto Mvp { get; set; } = new();
+    public OwnerDto Seller { get; set; } = new();
+    public OwnerDto Buyer { get; set; } = new();
+    public decimal Amount { get; set; }
+    public string Status { get; set; } = string.Empty;
+    public DateTime CreatedAt { get; set; }
+    public DateTime? CompletedAt { get; set; }
+}
+
+public class PurchaseMvpRequest
+{
+    // Empty for now, can add payment method later
+}
+
+public class PurchaseResponse
+{
+    public Guid TransactionId { get; set; }
+    public string Status { get; set; } = string.Empty;
+    public decimal Amount { get; set; }
+    public string Message { get; set; } = string.Empty;
+}
+
+// GitHub DTOs
+public class ConnectGitHubRequest
+{
+    public string GitHubUsername { get; set; } = string.Empty;
+    public string GitHubToken { get; set; } = string.Empty;
+}
+
+public class GitHubStatusDto
+{
+    public bool IsConnected { get; set; }
+    public string? Username { get; set; }
+}

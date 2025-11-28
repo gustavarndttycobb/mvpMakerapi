@@ -21,6 +21,9 @@ public class Mvp
     public Guid OwnerId { get; set; }
     public User? Owner { get; set; }
     
+    // GitHub Integration
+    public string? GitHubRepoUrl { get; set; } // https://github.com/owner/repo
+    
     // Details
     public List<string> Highlights { get; set; } = new();
     public string Objective { get; set; } = string.Empty;
