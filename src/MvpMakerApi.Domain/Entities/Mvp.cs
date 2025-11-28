@@ -21,8 +21,10 @@ public class Mvp
     public Guid OwnerId { get; set; }
     public User? Owner { get; set; }
     
-    // GitHub Integration
-    public string? GitHubRepoUrl { get; set; } // https://github.com/owner/repo
+    // Delivery Info
+    public MvpProductType ProductType { get; set; } // GitHubRepo, Drive
+    public string Link { get; set; } = string.Empty; // Source URL (Repo or Drive)
+    public string PreviewLink { get; set; } = string.Empty; // Demo URL
     
     // Details
     public List<string> Highlights { get; set; } = new();
@@ -30,4 +32,10 @@ public class Mvp
     public List<string> MainFeatures { get; set; } = new();
     public string Status { get; set; } = "in progress"; // "completed" | "in progress"
     public List<string> Screenshots { get; set; } = new();
+}
+
+public enum MvpProductType
+{
+    GitHubRepo,
+    Drive
 }

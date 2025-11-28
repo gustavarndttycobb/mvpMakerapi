@@ -104,28 +104,9 @@ public class TransactionService : ITransactionService
         // 6. Completar transação (repository handles atomic operation)
         await _transactionRepository.CompleteTransactionAsync(transactionId, transaction.BuyerId);
 
-        // 7. Transferir repositório GitHub (se existir)
-        if (!string.IsNullOrEmpty(mvp.GitHubRepoUrl) && 
-            !string.IsNullOrEmpty(transaction.Seller?.GitHubToken) &&
-            !string.IsNullOrEmpty(transaction.Buyer?.GitHubUsername))
-        {
-            var (transferred, message) = await _gitHubService.TransferRepositoryAsync(
-                mvp.GitHubRepoUrl,
-                transaction.Seller.GitHubToken,
-                transaction.Buyer.GitHubUsername
-            );
+        // Nota: Transferência GitHub agora é manual via endpoint /api/transaction/{id}/transfer-github
 
-            // Nota: Transferência GitHub é assíncrona (requer aceite do comprador)
-            // Se falhar, a transação já foi completada no banco
-            // TODO: Implementar retry ou notificação em caso de falha
-            if (!transferred)
-            {
-                // Logar erro (futuro)
-                Console.WriteLine($"GitHub Transfer Failed: {message}");
-            }
-        }
-
-        // 8. Recarregar transação com includes
+        // 7. Recarregar transação com includes
         transaction = await _transactionRepository.GetByIdAsync(transactionId);
 
         return MapToDto(transaction!);
@@ -166,6 +147,28 @@ public class TransactionService : ITransactionService
         };
     }
 
+    public async Task<(bool Success, string Message)> TransferGitHubRepositoryAsync(Guid transactionId, string sellerToken, string buyerUsername)
+    {
+        var transaction = await _transactionRepository.GetByIdAsync(transactionId);
+        if (transaction == null)
+        {
+            return (false, "Transaction not found");
+        }
+
+        if (transaction.Status != TransactionStatus.COMPLETED)
+        {
+            return (false, "Transaction must be completed before transfer");
+        }
+
+        var mvp = transaction.Mvp;
+        if (mvp == null || mvp.ProductType != MvpProductType.GitHubRepo)
+        {
+            return (false, "MVP is not a GitHub repository");
+        }
+
+        return await _gitHubService.TransferRepositoryAsync(mvp.Link, sellerToken, buyerUsername);
+    }
+
     private TransactionDto MapToDto(Transaction transaction)
     {
         return new TransactionDto
@@ -187,7 +190,10 @@ public class TransactionService : ITransactionService
                     Id = transaction.Mvp.Owner!.Id,
                     Name = transaction.Mvp.Owner.Name,
                     Email = transaction.Mvp.Owner.Email
-                }
+                },
+                ProductType = transaction.Mvp.ProductType.ToString(),
+                Link = transaction.Mvp.Link,
+                PreviewLink = transaction.Mvp.PreviewLink
             },
             Seller = new OwnerDto
             {

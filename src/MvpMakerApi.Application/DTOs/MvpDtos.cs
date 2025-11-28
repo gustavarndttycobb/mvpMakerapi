@@ -20,6 +20,10 @@ public class MvpDto
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
     public OwnerDto Owner { get; set; } = new();
+    
+    public string ProductType { get; set; } = string.Empty;
+    public string Link { get; set; } = string.Empty;
+    public string PreviewLink { get; set; } = string.Empty;
 }
 
 public class OwnerDto
@@ -51,6 +55,10 @@ public class CreateMvpRequest
     public List<string> MainFeatures { get; set; } = new();
     public string Status { get; set; } = "in progress";
     public List<string> Screenshots { get; set; } = new();
+    
+    public string ProductType { get; set; } = "GitHubRepo"; // GitHubRepo, Drive
+    public string Link { get; set; } = string.Empty;
+    public string PreviewLink { get; set; } = string.Empty;
 }
 
 public class UpdateMvpRequest
@@ -67,6 +75,10 @@ public class UpdateMvpRequest
     public List<string> MainFeatures { get; set; } = new();
     public string Status { get; set; } = "in progress";
     public List<string> Screenshots { get; set; } = new();
+    
+    public string ProductType { get; set; } = "GitHubRepo";
+    public string Link { get; set; } = string.Empty;
+    public string PreviewLink { get; set; } = string.Empty;
 }
 
 public class DeleteMvpRequest

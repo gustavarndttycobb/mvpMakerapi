@@ -98,4 +98,29 @@ public class TransactionController : ControllerBase
             return BadRequest(new { message = ex.Message });
         }
     }
+
+    [HttpPost("transactions/{id}/transfer-github")]
+    [Authorize]
+    public async Task<IActionResult> TransferGitHub(Guid id, [FromBody] TransferGitHubRequest request)
+    {
+        try
+        {
+            var (success, message) = await _transactionService.TransferGitHubRepositoryAsync(
+                id,
+                request.SellerToken,
+                request.BuyerUsername
+            );
+
+            if (success)
+            {
+                return Ok(new { message = "Repository transfer initiated successfully! Buyer must accept the transfer on GitHub." });
+            }
+
+            return BadRequest(new { message });
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+    }
 }
