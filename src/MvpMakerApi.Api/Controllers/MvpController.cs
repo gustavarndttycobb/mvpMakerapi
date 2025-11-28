@@ -49,7 +49,7 @@ public class MvpController : ControllerBase
         }
     }
 
-    [HttpPost("delete")]
+    [HttpDelete("delete")]
     [Authorize]
     public async Task<IActionResult> Delete([FromBody] DeleteMvpRequest request)
     {
