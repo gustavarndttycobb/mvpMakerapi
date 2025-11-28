@@ -53,6 +53,27 @@ public class CreateMvpRequest
     public List<string> Screenshots { get; set; } = new();
 }
 
+public class UpdateMvpRequest
+{
+    public Guid Id { get; set; }
+    public string Name { get; set; } = string.Empty;
+    public string Description { get; set; } = string.Empty;
+    public List<string> Technologies { get; set; } = new();
+    public List<string> Categories { get; set; } = new();
+    public string ImageUrl { get; set; } = string.Empty;
+    public decimal Price { get; set; }
+    public List<string> Highlights { get; set; } = new();
+    public string Objective { get; set; } = string.Empty;
+    public List<string> MainFeatures { get; set; } = new();
+    public string Status { get; set; } = "in progress";
+    public List<string> Screenshots { get; set; } = new();
+}
+
+public class DeleteMvpRequest
+{
+    public Guid Id { get; set; }
+}
+
 // Category DTOs
 public class CategoryDto
 {
@@ -81,4 +102,16 @@ public class CreateTechnologyRequest
 {
     public string Name { get; set; } = string.Empty;
     public string Description { get; set; } = string.Empty;
+}
+
+// Pagination
+public class PagedResult<T>
+{
+    public List<T> Items { get; set; } = new();
+    public int TotalCount { get; set; }
+    public int PageNumber { get; set; }
+    public int PageSize { get; set; }
+    public int TotalPages => (int)Math.Ceiling(TotalCount / (double)PageSize);
+    public bool HasPreviousPage => PageNumber > 1;
+    public bool HasNextPage => PageNumber < TotalPages;
 }
