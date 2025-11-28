@@ -33,6 +33,40 @@ public class MvpController : ControllerBase
         }
     }
 
+    [HttpPost("update")]
+    [Authorize]
+    public async Task<IActionResult> Update([FromBody] UpdateMvpRequest request)
+    {
+        try
+        {
+            var mvpId = request.Id;
+            var result = await _mvpService.UpdateMvpAsync(request, mvpId);
+            return Ok(result);
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+    }
+
+    [HttpPost("delete")]
+    [Authorize]
+    public async Task<IActionResult> Delete([FromBody] DeleteMvpRequest request)
+    {
+        try
+        {
+            var mvpId = request.Id;
+            var result = await _mvpService.DeleteMvpAsync(mvpId);
+            return Ok(result);
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+    }
+
+
+
     [HttpPost("list")]
     public async Task<IActionResult> List([FromBody] MvpListQuery query)
     {

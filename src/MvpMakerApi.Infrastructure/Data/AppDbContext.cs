@@ -37,6 +37,9 @@ public class AppDbContext : DbContext
                   .HasForeignKey(e => e.OwnerId)
                   .OnDelete(DeleteBehavior.Cascade);
 
+            // Add index for performance on user's MVP queries
+            entity.HasIndex(e => e.OwnerId);
+
             // Configure JSON columns using ValueConverter
             entity.Property(e => e.Technologies)
                   .HasConversion(

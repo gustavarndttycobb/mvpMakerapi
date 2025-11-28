@@ -20,6 +20,18 @@ public class MvpRepository : IMvpRepository
         await _context.SaveChangesAsync();
     }
 
+    public async Task UpdateAsync(Mvp mvp)
+    {
+        _context.MVPs.Update(mvp);
+        await _context.SaveChangesAsync();
+    }
+
+    public async Task DeleteAsync(Mvp mvp)
+    {
+        _context.MVPs.Remove(mvp);
+        await _context.SaveChangesAsync();
+    }
+
     public async Task<Mvp?> GetByIdAsync(Guid id)
     {
         return await _context.MVPs
@@ -73,5 +85,22 @@ public class MvpRepository : IMvpRepository
         }
 
         return result;
+    }
+
+    public async Task<(List<Mvp> Items, int TotalCount)> GetByOwnerIdAsync(Guid ownerId, int pageNumber, int pageSize)
+    {
+        var query = _context.MVPs
+            .Include(m => m.Owner)
+            .Where(m => m.OwnerId == ownerId)
+            .OrderByDescending(m => m.CreatedAt);
+
+        var totalCount = await query.CountAsync();
+
+        var items = await query
+            .Skip((pageNumber - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
+
+        return (items, totalCount);
     }
 }

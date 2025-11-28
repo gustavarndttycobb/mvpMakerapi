@@ -47,6 +47,45 @@ public class MvpService : IMvpService
         return MapToDto(mvp, user);
     }
 
+    public async Task<MvpDto> UpdateMvpAsync(UpdateMvpRequest request, Guid mvpId)
+    {
+        var mvp = await _mvpRepository.GetByIdAsync(mvpId);
+        if (mvp == null)
+        {
+            throw new Exception("MVP not found");
+        }
+
+        mvp.Name = request.Name;
+        mvp.Description = request.Description;
+        mvp.Technologies = request.Technologies;
+        mvp.Categories = request.Categories;
+        mvp.ImageUrl = request.ImageUrl;
+        mvp.Price = request.Price;
+        mvp.Highlights = request.Highlights;
+        mvp.Objective = request.Objective;
+        mvp.MainFeatures = request.MainFeatures;
+        mvp.Status = request.Status;
+        mvp.Screenshots = request.Screenshots;
+        mvp.UpdatedAt = DateTime.UtcNow;
+
+        await _mvpRepository.UpdateAsync(mvp);
+
+        return MapToDto(mvp, mvp.Owner!);
+    }
+
+    public async Task<bool> DeleteMvpAsync(Guid mvpId)
+    {
+        var mvp = await _mvpRepository.GetByIdAsync(mvpId);
+        if (mvp == null)
+        {
+            throw new Exception("MVP not found");
+        }
+
+        await _mvpRepository.DeleteAsync(mvp);
+
+        return true;
+    }
+
     public async Task<List<MvpDto>> GetMvpListAsync(MvpListQuery query)
     {
         decimal? minPrice = null;
@@ -79,6 +118,24 @@ public class MvpService : IMvpService
         }
 
         return MapToDetailsDto(mvp, mvp.Owner!);
+    }
+
+    public async Task<PagedResult<MvpDto>> GetUserMvpsAsync(Guid userId, int pageNumber, int pageSize)
+    {
+        // Validate pagination parameters
+        if (pageNumber < 1) pageNumber = 1;
+        if (pageSize < 1) pageSize = 10;
+        if (pageSize > 100) pageSize = 100; // Max 100 items per page
+
+        var (items, totalCount) = await _mvpRepository.GetByOwnerIdAsync(userId, pageNumber, pageSize);
+
+        return new PagedResult<MvpDto>
+        {
+            Items = items.Select(m => MapToDto(m, m.Owner!)).ToList(),
+            TotalCount = totalCount,
+            PageNumber = pageNumber,
+            PageSize = pageSize
+        };
     }
 
     private MvpDto MapToDto(Mvp mvp, User owner)
