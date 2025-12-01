@@ -72,6 +72,10 @@ namespace MvpMakerApi.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("longtext");
 
+                    b.Property<string>("Link")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
                     b.Property<string>("MainFeatures")
                         .IsRequired()
                         .HasColumnType("longtext");
@@ -87,8 +91,15 @@ namespace MvpMakerApi.Infrastructure.Migrations
                     b.Property<Guid>("OwnerId")
                         .HasColumnType("char(36)");
 
+                    b.Property<string>("PreviewLink")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
                     b.Property<decimal>("Price")
                         .HasColumnType("decimal(18,2)");
+
+                    b.Property<int>("ProductType")
+                        .HasColumnType("int");
 
                     b.Property<string>("Screenshots")
                         .IsRequired()
@@ -137,11 +148,63 @@ namespace MvpMakerApi.Infrastructure.Migrations
                     b.ToTable("Technologies");
                 });
 
+            modelBuilder.Entity("MvpMakerApi.Domain.Entities.Transaction", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("char(36)");
+
+                    b.Property<decimal>("Amount")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("BuyerGitHubUsername")
+                        .HasColumnType("longtext");
+
+                    b.Property<Guid>("BuyerId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<DateTime?>("CompletedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<Guid>("MvpId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<string>("ProductType")
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("RepoUrl")
+                        .HasColumnType("longtext");
+
+                    b.Property<Guid>("SellerId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BuyerId");
+
+                    b.HasIndex("MvpId");
+
+                    b.HasIndex("SellerId");
+
+                    b.HasIndex("Status");
+
+                    b.ToTable("Transactions");
+                });
+
             modelBuilder.Entity("MvpMakerApi.Domain.Entities.User", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("char(36)");
+
+                    b.Property<decimal>("Balance")
+                        .HasColumnType("decimal(65,30)");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime(6)");
@@ -175,6 +238,33 @@ namespace MvpMakerApi.Infrastructure.Migrations
                         .IsRequired();
 
                     b.Navigation("Owner");
+                });
+
+            modelBuilder.Entity("MvpMakerApi.Domain.Entities.Transaction", b =>
+                {
+                    b.HasOne("MvpMakerApi.Domain.Entities.User", "Buyer")
+                        .WithMany()
+                        .HasForeignKey("BuyerId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("MvpMakerApi.Domain.Entities.Mvp", "Mvp")
+                        .WithMany()
+                        .HasForeignKey("MvpId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("MvpMakerApi.Domain.Entities.User", "Seller")
+                        .WithMany()
+                        .HasForeignKey("SellerId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Buyer");
+
+                    b.Navigation("Mvp");
+
+                    b.Navigation("Seller");
                 });
 #pragma warning restore 612, 618
         }

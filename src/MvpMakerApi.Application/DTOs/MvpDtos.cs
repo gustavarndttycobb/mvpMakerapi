@@ -20,6 +20,10 @@ public class MvpDto
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
     public OwnerDto Owner { get; set; } = new();
+    
+    public string ProductType { get; set; } = string.Empty;
+    public string Link { get; set; } = string.Empty;
+    public string PreviewLink { get; set; } = string.Empty;
 }
 
 public class OwnerDto
@@ -51,6 +55,10 @@ public class CreateMvpRequest
     public List<string> MainFeatures { get; set; } = new();
     public string Status { get; set; } = "in progress";
     public List<string> Screenshots { get; set; } = new();
+    
+    public string ProductType { get; set; } = "GitHubRepo"; // GitHubRepo, Drive
+    public string Link { get; set; } = string.Empty;
+    public string PreviewLink { get; set; } = string.Empty;
 }
 
 public class UpdateMvpRequest
@@ -67,6 +75,10 @@ public class UpdateMvpRequest
     public List<string> MainFeatures { get; set; } = new();
     public string Status { get; set; } = "in progress";
     public List<string> Screenshots { get; set; } = new();
+    
+    public string ProductType { get; set; } = "GitHubRepo";
+    public string Link { get; set; } = string.Empty;
+    public string PreviewLink { get; set; } = string.Empty;
 }
 
 public class DeleteMvpRequest
@@ -114,4 +126,56 @@ public class PagedResult<T>
     public int TotalPages => (int)Math.Ceiling(TotalCount / (double)PageSize);
     public bool HasPreviousPage => PageNumber > 1;
     public bool HasNextPage => PageNumber < TotalPages;
+}
+
+// Transaction DTOs
+public class TransactionDto
+{
+    public Guid Id { get; set; }
+    
+    // IDs for filtering
+    public Guid SellerId { get; set; }
+    public Guid BuyerId { get; set; }
+    public Guid MvpId { get; set; }
+    
+    // Related objects
+    public MvpDto Mvp { get; set; } = new();
+    public OwnerDto Seller { get; set; } = new();
+    public OwnerDto Buyer { get; set; } = new();
+    
+    public decimal Amount { get; set; }
+    public string Status { get; set; } = string.Empty;
+    public DateTime CreatedAt { get; set; }
+    public DateTime? CompletedAt { get; set; }
+    
+    // GitHub Transfer Fields
+    public string? ProductType { get; set; }
+    public string? RepoUrl { get; set; }
+    public string? BuyerGitHubUsername { get; set; }
+}
+
+public class PurchaseMvpRequest
+{
+    // Empty for now, can add payment method later
+}
+
+public class PurchaseResponse
+{
+    public Guid TransactionId { get; set; }
+    public string Status { get; set; } = string.Empty;
+    public decimal Amount { get; set; }
+    public string Message { get; set; } = string.Empty;
+}
+
+// GitHub DTOs
+public class ConnectGitHubRequest
+{
+    public string GitHubUsername { get; set; } = string.Empty;
+    public string GitHubToken { get; set; } = string.Empty;
+}
+
+public class GitHubStatusDto
+{
+    public bool IsConnected { get; set; }
+    public string? Username { get; set; }
 }

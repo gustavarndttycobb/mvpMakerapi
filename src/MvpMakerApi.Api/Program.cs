@@ -7,6 +7,8 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using MvpMakerApi.Application.Interfaces;
 using MvpMakerApi.Application.Services;
+using MvpMakerApi.Domain.Interfaces;
+using MvpMakerApi.Infrastructure.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -76,6 +78,11 @@ builder.Services.AddScoped<IJwtService, JwtService>(provider =>
 
 builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<ITechnologyService, TechnologyService>();
+builder.Services.AddScoped<ITransactionService, TransactionService>();
+builder.Services.AddScoped<IWalletService, WalletService>();
+
+// GitHub Integration
+builder.Services.AddHttpClient<IGitHubService, GitHubService>();
 
 builder.Services.AddAuthentication(options =>
 {

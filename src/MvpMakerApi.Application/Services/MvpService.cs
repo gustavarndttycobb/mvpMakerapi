@@ -39,7 +39,10 @@ public class MvpService : IMvpService
             Status = request.Status,
             Screenshots = request.Screenshots,
             CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow
+            UpdatedAt = DateTime.UtcNow,
+            ProductType = Enum.Parse<MvpProductType>(request.ProductType),
+            Link = request.Link,
+            PreviewLink = request.PreviewLink
         };
 
         await _mvpRepository.AddAsync(mvp);
@@ -67,6 +70,9 @@ public class MvpService : IMvpService
         mvp.Status = request.Status;
         mvp.Screenshots = request.Screenshots;
         mvp.UpdatedAt = DateTime.UtcNow;
+        mvp.ProductType = Enum.Parse<MvpProductType>(request.ProductType);
+        mvp.Link = request.Link;
+        mvp.PreviewLink = request.PreviewLink;
 
         await _mvpRepository.UpdateAsync(mvp);
 
@@ -156,7 +162,10 @@ public class MvpService : IMvpService
                 Id = owner.Id,
                 Name = owner.Name,
                 Email = owner.Email
-            }
+            },
+            ProductType = mvp.ProductType.ToString(),
+            Link = mvp.Link,
+            PreviewLink = mvp.PreviewLink
         };
     }
 
@@ -183,7 +192,10 @@ public class MvpService : IMvpService
             Objective = mvp.Objective,
             MainFeatures = mvp.MainFeatures,
             Status = mvp.Status,
-            Screenshots = mvp.Screenshots
+            Screenshots = mvp.Screenshots,
+            ProductType = mvp.ProductType.ToString(),
+            Link = mvp.Link,
+            PreviewLink = mvp.PreviewLink
         };
     }
 }

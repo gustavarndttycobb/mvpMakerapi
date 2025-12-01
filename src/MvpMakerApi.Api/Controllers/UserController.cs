@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using MvpMakerApi.Application.DTOs;
 using MvpMakerApi.Application.Interfaces;
+using MvpMakerApi.Domain.Interfaces;
 using System.Security.Claims;
 
 namespace MvpMakerApi.Api.Controllers;
@@ -11,29 +13,38 @@ namespace MvpMakerApi.Api.Controllers;
 public class UserController : ControllerBase
 {
     private readonly IMvpService _mvpService;
+    private readonly IUserRepository _userRepository;
 
-    public UserController(IMvpService mvpService)
+    public UserController(
+        IMvpService mvpService,
+        IUserRepository userRepository)
     {
         _mvpService = mvpService;
+        _userRepository = userRepository;
     }
 
     [HttpGet("me")]
-    public IActionResult GetCurrentUser()
+    public async Task<IActionResult> GetCurrentUser()
     {
-        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        var email = User.FindFirst(ClaimTypes.Email)?.Value;
-        var name = User.FindFirst(ClaimTypes.Name)?.Value;
-
-        if (string.IsNullOrEmpty(userId))
+        var userIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        
+        if (string.IsNullOrEmpty(userIdStr) || !Guid.TryParse(userIdStr, out var userId))
         {
             return Unauthorized(new { message = "Invalid token" });
         }
 
+        var user = await _userRepository.GetByIdAsync(userId);
+        if (user == null)
+        {
+            return NotFound(new { message = "User not found" });
+        }
+
         return Ok(new
         {
-            id = userId,
-            email = email,
-            name = name
+            id = user.Id,
+            name = user.Name,
+            email = user.Email,
+            balance = user.Balance
         });
     }
 
