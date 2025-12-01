@@ -10,7 +10,7 @@ $buyerPass = "1234"
 $mvpName = "Test 10"
 $githubUrl = "https://github.com/gustavoarndtufv/transaction-test"
 $buyerGithubUser = "gustavarndttycobb"
-$pat = "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"
+# $pat = "Add a valid PAT token here to test the flow"
 
 function Invoke-Api {
     param(
