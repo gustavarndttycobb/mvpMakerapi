@@ -25,6 +25,7 @@ public class Mvp
     public MvpProductType ProductType { get; set; } // GitHubRepo, Drive
     public string Link { get; set; } = string.Empty; // Source URL (Repo or Drive)
     public string PreviewLink { get; set; } = string.Empty; // Demo URL
+    public GitHubBusinessType? GitHubBusinessType { get; set; } // Only for GitHubRepo: Transfer or Fork
     
     // Details
     public List<string> Highlights { get; set; } = new();

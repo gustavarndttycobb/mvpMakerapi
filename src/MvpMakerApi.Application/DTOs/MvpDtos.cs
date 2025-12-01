@@ -24,6 +24,7 @@ public class MvpDto
     public string ProductType { get; set; } = string.Empty;
     public string Link { get; set; } = string.Empty;
     public string PreviewLink { get; set; } = string.Empty;
+    public string? GitHubBusinessType { get; set; }
 }
 
 public class OwnerDto
@@ -59,6 +60,7 @@ public class CreateMvpRequest
     public string ProductType { get; set; } = "GitHubRepo"; // GitHubRepo, Drive
     public string Link { get; set; } = string.Empty;
     public string PreviewLink { get; set; } = string.Empty;
+    public string? GitHubBusinessType { get; set; } // Transfer or Fork (only for GitHubRepo)
 }
 
 public class UpdateMvpRequest
@@ -79,6 +81,7 @@ public class UpdateMvpRequest
     public string ProductType { get; set; } = "GitHubRepo";
     public string Link { get; set; } = string.Empty;
     public string PreviewLink { get; set; } = string.Empty;
+    public string? GitHubBusinessType { get; set; } // Transfer or Fork (only for GitHubRepo)
 }
 
 public class DeleteMvpRequest

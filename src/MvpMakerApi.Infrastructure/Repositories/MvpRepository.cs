@@ -41,10 +41,14 @@ public class MvpRepository : IMvpRepository
 
     public async Task<List<Mvp>> ListAsync(List<string>? categories, List<string>? technologies, decimal? minPrice, decimal? maxPrice, DateTime? startDate, DateTime? endDate)
     {
-        // Exclude MVPs that have been sold (have a COMPLETED transaction)
+        // Exclude MVPs that have been sold ONLY if they are Transfer type
+        // Fork type MVPs can be sold multiple times, so they remain in the listing
         var query = _context.MVPs
             .Include(m => m.Owner)
-            .Where(m => !_context.Transactions.Any(t => t.MvpId == m.Id && t.Status == TransactionStatus.COMPLETED))
+            .Where(m => !_context.Transactions.Any(t => 
+                t.MvpId == m.Id && 
+                t.Status == TransactionStatus.COMPLETED &&
+                (m.GitHubBusinessType == null || m.GitHubBusinessType == Domain.Entities.GitHubBusinessType.Transfer)))
             .AsQueryable();
 
         if (minPrice.HasValue)
