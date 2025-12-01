@@ -17,12 +17,19 @@ public class Transaction
     
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime? CompletedAt { get; set; }
+    
+    // GitHub Transfer Fields
+    public string? ProductType { get; set; } // "GitHubRepo" or "Drive"
+    public string? RepoUrl { get; set; }
+    public string? BuyerGitHubUsername { get; set; }
 }
 
 public enum TransactionStatus
 {
-    PENDING = 0,    // Aguardando pagamento
-    COMPLETED = 1,  // Concluída (pago e transferido)
-    FAILED = 2,     // Falhou
-    CANCELLED = 3   // Cancelada
+    PENDING = 0,          // Aguardando pagamento
+    PENDING_TRANSFER = 1, // Aguardando transferência GitHub
+    WAITING_ACCEPTANCE = 2, // Aguardando aceite do comprador
+    COMPLETED = 3,        // Concluída (pago e transferido)
+    FAILED = 4,           // Falhou
+    CANCELLED = 5         // Cancelada
 }

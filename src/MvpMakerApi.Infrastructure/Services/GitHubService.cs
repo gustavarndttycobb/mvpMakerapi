@@ -50,10 +50,21 @@ public class GitHubService : IGitHubService
             }
 
             var errorContent = await response.Content.ReadAsStringAsync();
+            Console.WriteLine($"[GitHubService] Error Content: {errorContent}"); // DEBUG LOG
+            
+            // Se o erro for "já em progresso" ou "já existe", tratamos como sucesso
+            if (errorContent.Contains("already in progress", StringComparison.OrdinalIgnoreCase) ||
+                errorContent.Contains("Repository has already been taken", StringComparison.OrdinalIgnoreCase))
+            {
+                Console.WriteLine("[GitHubService] Detected 'already in progress' or 'already taken'. Treating as success.");
+                return (true, "Transfer already in progress or completed. Please check GitHub.");
+            }
+
             return (false, $"GitHub API Error ({response.StatusCode}): {errorContent}");
         }
         catch (Exception ex)
         {
+            Console.WriteLine($"[GitHubService] Exception: {ex.Message}");
             return (false, $"Exception: {ex.Message}");
         }
     }

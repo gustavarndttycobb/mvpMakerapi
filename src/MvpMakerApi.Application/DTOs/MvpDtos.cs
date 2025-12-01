@@ -132,13 +132,26 @@ public class PagedResult<T>
 public class TransactionDto
 {
     public Guid Id { get; set; }
+    
+    // IDs for filtering
+    public Guid SellerId { get; set; }
+    public Guid BuyerId { get; set; }
+    public Guid MvpId { get; set; }
+    
+    // Related objects
     public MvpDto Mvp { get; set; } = new();
     public OwnerDto Seller { get; set; } = new();
     public OwnerDto Buyer { get; set; } = new();
+    
     public decimal Amount { get; set; }
     public string Status { get; set; } = string.Empty;
     public DateTime CreatedAt { get; set; }
     public DateTime? CompletedAt { get; set; }
+    
+    // GitHub Transfer Fields
+    public string? ProductType { get; set; }
+    public string? RepoUrl { get; set; }
+    public string? BuyerGitHubUsername { get; set; }
 }
 
 public class PurchaseMvpRequest

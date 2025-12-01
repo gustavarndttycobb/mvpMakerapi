@@ -41,7 +41,11 @@ public class MvpRepository : IMvpRepository
 
     public async Task<List<Mvp>> ListAsync(List<string>? categories, List<string>? technologies, decimal? minPrice, decimal? maxPrice, DateTime? startDate, DateTime? endDate)
     {
-        var query = _context.MVPs.Include(m => m.Owner).AsQueryable();
+        // Exclude MVPs that have been sold (have a COMPLETED transaction)
+        var query = _context.MVPs
+            .Include(m => m.Owner)
+            .Where(m => !_context.Transactions.Any(t => t.MvpId == m.Id && t.Status == TransactionStatus.COMPLETED))
+            .AsQueryable();
 
         if (minPrice.HasValue)
         {

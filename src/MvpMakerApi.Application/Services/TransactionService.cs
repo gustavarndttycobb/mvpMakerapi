@@ -9,15 +9,18 @@ public class TransactionService : ITransactionService
 {
     private readonly ITransactionRepository _transactionRepository;
     private readonly IMvpRepository _mvpRepository;
+    private readonly IUserRepository _userRepository;
     private readonly IGitHubService _gitHubService;
 
     public TransactionService(
         ITransactionRepository transactionRepository,
         IMvpRepository mvpRepository,
+        IUserRepository userRepository,
         IGitHubService gitHubService)
     {
         _transactionRepository = transactionRepository;
         _mvpRepository = mvpRepository;
+        _userRepository = userRepository;
         _gitHubService = gitHubService;
     }
 
@@ -43,15 +46,34 @@ public class TransactionService : ITransactionService
             throw new InvalidOperationException("This MVP already has a pending transaction");
         }
 
-        // 4. Criar transação
+        // 4. Buscar comprador para obter GitHubUsername se disponível
+        var buyer = await _userRepository.GetByIdAsync(buyerId);
+        if (buyer == null)
+        {
+            throw new Exception("Buyer not found");
+        }
+
+        // 5. Determinar status inicial baseado no tipo de produto
+        var initialStatus = mvp.ProductType == MvpProductType.GitHubRepo 
+            ? TransactionStatus.PENDING_TRANSFER 
+            : TransactionStatus.PENDING;
+
+        var message = mvp.ProductType == MvpProductType.GitHubRepo
+            ? "Purchase initiated. Waiting for seller to transfer repository."
+            : "Purchase initiated. Complete payment to finalize transaction.";
+
+        // 6. Criar transação
         var transaction = new Transaction
         {
             MvpId = mvpId,
             SellerId = mvp.OwnerId,
             BuyerId = buyerId,
             Amount = mvp.Price,
-            Status = TransactionStatus.PENDING,
-            CreatedAt = DateTime.UtcNow
+            Status = initialStatus,
+            CreatedAt = DateTime.UtcNow,
+            ProductType = mvp.ProductType.ToString(),
+            RepoUrl = mvp.ProductType == MvpProductType.GitHubRepo ? mvp.Link : null,
+            BuyerGitHubUsername = null // Will be provided during transfer
         };
 
         await _transactionRepository.CreateAsync(transaction);
@@ -61,7 +83,7 @@ public class TransactionService : ITransactionService
             TransactionId = transaction.Id,
             Status = transaction.Status.ToString(),
             Amount = transaction.Amount,
-            Message = "Purchase initiated. Complete payment to finalize transaction."
+            Message = message
         };
     }
 
@@ -80,20 +102,26 @@ public class TransactionService : ITransactionService
             throw new UnauthorizedAccessException("Only the buyer can complete this transaction");
         }
 
-        // 3. Verificar se transação está pendente
+        // 3. Rejeitar se for GitHubRepo (deve usar endpoint de transferência)
+        if (transaction.ProductType == "GitHubRepo")
+        {
+            throw new InvalidOperationException("GitHubRepo transactions must be completed via transfer endpoint");
+        }
+
+        // 4. Verificar se transação está pendente
         if (transaction.Status != TransactionStatus.PENDING)
         {
             throw new InvalidOperationException($"Transaction is not pending. Current status: {transaction.Status}");
         }
 
-        // 4. Buscar MVP
+        // 5. Buscar MVP
         var mvp = await _mvpRepository.GetByIdAsync(transaction.MvpId);
         if (mvp == null)
         {
             throw new Exception("MVP not found");
         }
 
-        // 5. Verificar se vendedor ainda é o dono
+        // 6. Verificar se vendedor ainda é o dono
         if (mvp.OwnerId != transaction.SellerId)
         {
             transaction.Status = TransactionStatus.FAILED;
@@ -101,12 +129,10 @@ public class TransactionService : ITransactionService
             throw new InvalidOperationException("MVP ownership has changed. Transaction failed.");
         }
 
-        // 6. Completar transação (repository handles atomic operation)
+        // 7. Completar transação (repository handles atomic operation)
         await _transactionRepository.CompleteTransactionAsync(transactionId, transaction.BuyerId);
 
-        // Nota: Transferência GitHub agora é manual via endpoint /api/transaction/{id}/transfer-github
-
-        // 7. Recarregar transação com includes
+        // 8. Recarregar transação com includes
         transaction = await _transactionRepository.GetByIdAsync(transactionId);
 
         return MapToDto(transaction!);
@@ -155,18 +181,69 @@ public class TransactionService : ITransactionService
             return (false, "Transaction not found");
         }
 
-        if (transaction.Status != TransactionStatus.COMPLETED)
+        if (transaction.Status != TransactionStatus.PENDING_TRANSFER)
         {
-            return (false, "Transaction must be completed before transfer");
+            return (false, $"Transaction is not pending transfer. Current status: {transaction.Status}");
         }
 
-        var mvp = transaction.Mvp;
-        if (mvp == null || mvp.ProductType != MvpProductType.GitHubRepo)
+        if (transaction.ProductType != "GitHubRepo")
         {
-            return (false, "MVP is not a GitHub repository");
+            return (false, "Transaction is not for a GitHub repository");
         }
 
-        return await _gitHubService.TransferRepositoryAsync(mvp.Link, sellerToken, buyerUsername);
+        if (string.IsNullOrEmpty(transaction.RepoUrl))
+        {
+            return (false, "Repository URL not found in transaction");
+        }
+
+        // Transferir repositório
+        var (success, message) = await _gitHubService.TransferRepositoryAsync(
+            transaction.RepoUrl,
+            sellerToken,
+            buyerUsername
+        );
+
+        if (success)
+        {
+            // Atualizar status para WAITING_ACCEPTANCE (aguardando aceite do comprador)
+            transaction.Status = TransactionStatus.WAITING_ACCEPTANCE;
+            // CompletedAt permanece null até o comprador verificar
+            await _transactionRepository.UpdateAsync(transaction);
+        }
+
+        return (success, message);
+    }
+
+    public async Task<TransactionDto> VerifyTransferAsync(Guid transactionId, Guid userId)
+    {
+        var transaction = await _transactionRepository.GetByIdAsync(transactionId);
+        if (transaction == null)
+        {
+            throw new Exception("Transaction not found");
+        }
+
+        // Verificar se usuário é o comprador
+        if (transaction.BuyerId != userId)
+        {
+            throw new UnauthorizedAccessException("Only the buyer can verify this transfer");
+        }
+
+        // Verificar status
+        if (transaction.Status != TransactionStatus.WAITING_ACCEPTANCE)
+        {
+            throw new InvalidOperationException($"Transaction is not waiting for acceptance. Current status: {transaction.Status}");
+        }
+
+        // Atualizar status para COMPLETED
+        transaction.Status = TransactionStatus.COMPLETED;
+        transaction.CompletedAt = DateTime.UtcNow;
+        
+        await _transactionRepository.UpdateAsync(transaction);
+        await _transactionRepository.CompleteTransactionAsync(transactionId, userId); // Garante persistência final
+
+        // Recarregar para retornar DTO atualizado
+        transaction = await _transactionRepository.GetByIdAsync(transactionId);
+        return MapToDto(transaction!);
     }
 
     private TransactionDto MapToDto(Transaction transaction)
@@ -174,6 +251,9 @@ public class TransactionService : ITransactionService
         return new TransactionDto
         {
             Id = transaction.Id,
+            SellerId = transaction.SellerId,
+            BuyerId = transaction.BuyerId,
+            MvpId = transaction.MvpId,
             Mvp = new MvpDto
             {
                 Id = transaction.Mvp!.Id,
@@ -210,7 +290,10 @@ public class TransactionService : ITransactionService
             Amount = transaction.Amount,
             Status = transaction.Status.ToString(),
             CreatedAt = transaction.CreatedAt,
-            CompletedAt = transaction.CompletedAt
+            CompletedAt = transaction.CompletedAt,
+            ProductType = transaction.ProductType,
+            RepoUrl = transaction.RepoUrl,
+            BuyerGitHubUsername = transaction.BuyerGitHubUsername
         };
     }
 }
