@@ -24,6 +24,12 @@ public class MvpService : IMvpService
             throw new Exception("User not found");
         }
 
+        // Validate GitHubBusinessType for GitHubRepo
+        if (request.ProductType == "GitHubRepo" && string.IsNullOrEmpty(request.GitHubBusinessType))
+        {
+            throw new ArgumentException("GitHubBusinessType is required for GitHubRepo products");
+        }
+
         var mvp = new Mvp
         {
             Name = request.Name,
@@ -42,7 +48,10 @@ public class MvpService : IMvpService
             UpdatedAt = DateTime.UtcNow,
             ProductType = Enum.Parse<MvpProductType>(request.ProductType),
             Link = request.Link,
-            PreviewLink = request.PreviewLink
+            PreviewLink = request.PreviewLink,
+            GitHubBusinessType = !string.IsNullOrEmpty(request.GitHubBusinessType) 
+                ? Enum.Parse<Domain.Entities.GitHubBusinessType>(request.GitHubBusinessType) 
+                : null
         };
 
         await _mvpRepository.AddAsync(mvp);
@@ -73,6 +82,9 @@ public class MvpService : IMvpService
         mvp.ProductType = Enum.Parse<MvpProductType>(request.ProductType);
         mvp.Link = request.Link;
         mvp.PreviewLink = request.PreviewLink;
+        mvp.GitHubBusinessType = !string.IsNullOrEmpty(request.GitHubBusinessType) 
+            ? Enum.Parse<Domain.Entities.GitHubBusinessType>(request.GitHubBusinessType) 
+            : null;
 
         await _mvpRepository.UpdateAsync(mvp);
 
@@ -165,7 +177,8 @@ public class MvpService : IMvpService
             },
             ProductType = mvp.ProductType.ToString(),
             Link = mvp.Link,
-            PreviewLink = mvp.PreviewLink
+            PreviewLink = mvp.PreviewLink,
+            GitHubBusinessType = mvp.GitHubBusinessType?.ToString()
         };
     }
 
@@ -195,7 +208,8 @@ public class MvpService : IMvpService
             Screenshots = mvp.Screenshots,
             ProductType = mvp.ProductType.ToString(),
             Link = mvp.Link,
-            PreviewLink = mvp.PreviewLink
+            PreviewLink = mvp.PreviewLink,
+            GitHubBusinessType = mvp.GitHubBusinessType?.ToString()
         };
     }
 }

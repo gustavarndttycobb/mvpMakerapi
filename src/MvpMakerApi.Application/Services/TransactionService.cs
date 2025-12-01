@@ -54,8 +54,8 @@ public class TransactionService : ITransactionService
         }
 
         // 5. Determinar status inicial baseado no tipo de produto
-        var initialStatus = mvp.ProductType == MvpProductType.GitHubRepo 
-            ? TransactionStatus.PENDING_TRANSFER 
+        var initialStatus = mvp.ProductType == MvpProductType.GitHubRepo
+            ? TransactionStatus.PENDING_TRANSFER
             : TransactionStatus.PENDING;
 
         var message = mvp.ProductType == MvpProductType.GitHubRepo
@@ -196,14 +196,37 @@ public class TransactionService : ITransactionService
             return (false, "Repository URL not found in transaction");
         }
 
-        // Transferir repositório
-        var (success, message) = await _gitHubService.TransferRepositoryAsync(
-            transaction.RepoUrl,
-            sellerToken,
-            buyerUsername
-        );
+        // Get MVP to check BusinessType
+        var mvp = transaction.Mvp;
+        if (mvp == null)
+        {
+            return (false, "MVP not found");
+        }
 
-        if (success)
+        // Execute transfer or fork based on BusinessType
+        (bool success, string message) result;
+
+        if (mvp.GitHubBusinessType == Domain.Entities.GitHubBusinessType.Fork)
+        {
+            // Fork: Invite buyer as collaborator with read access
+            // No buyer token needed, as the seller sends the invite
+            result = await _gitHubService.InviteCollaboratorAsync(
+                transaction.RepoUrl,
+                sellerToken,
+                buyerUsername
+            );
+        }
+        else
+        {
+            // Transfer: Move ownership to buyer (default behavior)
+            result = await _gitHubService.TransferRepositoryAsync(
+                transaction.RepoUrl,
+                sellerToken,
+                buyerUsername
+            );
+        }
+
+        if (result.success)
         {
             // Atualizar status para WAITING_ACCEPTANCE (aguardando aceite do comprador)
             transaction.Status = TransactionStatus.WAITING_ACCEPTANCE;
@@ -211,7 +234,7 @@ public class TransactionService : ITransactionService
             await _transactionRepository.UpdateAsync(transaction);
         }
 
-        return (success, message);
+        return result;
     }
 
     public async Task<TransactionDto> VerifyTransferAsync(Guid transactionId, Guid userId)
@@ -237,9 +260,16 @@ public class TransactionService : ITransactionService
         // Atualizar status para COMPLETED
         transaction.Status = TransactionStatus.COMPLETED;
         transaction.CompletedAt = DateTime.UtcNow;
-        
+
         await _transactionRepository.UpdateAsync(transaction);
-        await _transactionRepository.CompleteTransactionAsync(transactionId, userId); // Garante persistência final
+
+        // Only transfer MVP ownership if BusinessType is Transfer
+        // For Fork, the seller retains ownership and can sell multiple times
+        var mvp = transaction.Mvp;
+        if (mvp != null && mvp.GitHubBusinessType != Domain.Entities.GitHubBusinessType.Fork)
+        {
+            await _transactionRepository.CompleteTransactionAsync(transactionId, userId);
+        }
 
         // Recarregar para retornar DTO atualizado
         transaction = await _transactionRepository.GetByIdAsync(transactionId);
