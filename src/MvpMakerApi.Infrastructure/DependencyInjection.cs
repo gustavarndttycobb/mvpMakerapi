@@ -23,6 +23,10 @@ public static class DependencyInjection
         services.AddScoped<ITechnologyRepository, TechnologyRepository>();
         services.AddScoped<ITransactionRepository, TransactionRepository>();
 
+        // Git & Drive Services
+        services.AddHttpClient<IGitHubService, Services.GitHubService>();
+        services.AddHttpClient<IGoogleDriveService, Services.GoogleDriveService>();
+
         return services;
     }
 }
