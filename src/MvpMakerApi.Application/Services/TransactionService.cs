@@ -11,17 +11,20 @@ public class TransactionService : ITransactionService
     private readonly IMvpRepository _mvpRepository;
     private readonly IUserRepository _userRepository;
     private readonly IGitHubService _gitHubService;
+    private readonly IGoogleDriveService _googleDriveService;
 
     public TransactionService(
         ITransactionRepository transactionRepository,
         IMvpRepository mvpRepository,
         IUserRepository userRepository,
-        IGitHubService gitHubService)
+        IGitHubService gitHubService,
+        IGoogleDriveService googleDriveService)
     {
         _transactionRepository = transactionRepository;
         _mvpRepository = mvpRepository;
         _userRepository = userRepository;
         _gitHubService = gitHubService;
+        _googleDriveService = googleDriveService;
     }
 
     public async Task<PurchaseResponse> InitiatePurchaseAsync(Guid mvpId, Guid buyerId)
@@ -54,13 +57,20 @@ public class TransactionService : ITransactionService
         }
 
         // 5. Determinar status inicial baseado no tipo de produto
-        var initialStatus = mvp.ProductType == MvpProductType.GitHubRepo
+        // GitHubRepo e Drive requerem transferência/compartilhamento pelo vendedor
+        var requiresTransfer = mvp.ProductType == MvpProductType.GitHubRepo ||
+                               mvp.ProductType == MvpProductType.Drive;
+
+        var initialStatus = requiresTransfer
             ? TransactionStatus.PENDING_TRANSFER
             : TransactionStatus.PENDING;
 
-        var message = mvp.ProductType == MvpProductType.GitHubRepo
-            ? "Purchase initiated. Waiting for seller to transfer repository."
-            : "Purchase initiated. Complete payment to finalize transaction.";
+        var message = mvp.ProductType switch
+        {
+            MvpProductType.GitHubRepo => "Purchase initiated. Waiting for seller to transfer repository.",
+            MvpProductType.Drive => "Purchase initiated. Waiting for seller to share/transfer Drive file.",
+            _ => "Purchase initiated. Complete payment to finalize transaction."
+        };
 
         // 6. Criar transação
         var transaction = new Transaction
@@ -237,6 +247,77 @@ public class TransactionService : ITransactionService
         return result;
     }
 
+    public async Task<(bool Success, string Message)> TransferDriveFileAsync(Guid transactionId, string sellerToken, string buyerEmail)
+    {
+        var transaction = await _transactionRepository.GetByIdAsync(transactionId);
+        if (transaction == null)
+        {
+            return (false, "Transaction not found");
+        }
+
+        if (transaction.Status != TransactionStatus.PENDING_TRANSFER)
+        {
+            return (false, $"Transaction is not pending transfer. Current status: {transaction.Status}");
+        }
+
+        if (transaction.ProductType != "Drive")
+        {
+            return (false, "Transaction is not for a Google Drive file");
+        }
+
+        // Get MVP to check BusinessType and get file link
+        var mvp = transaction.Mvp;
+        if (mvp == null)
+        {
+            return (false, "MVP not found");
+        }
+
+        if (string.IsNullOrEmpty(mvp.Link))
+        {
+            return (false, "Drive file URL not found in MVP");
+        }
+
+        // Extract file ID from Drive URL
+        var fileId = _googleDriveService.ExtractFileIdFromUrl(mvp.Link);
+        if (string.IsNullOrEmpty(fileId))
+        {
+            return (false, "Could not extract file ID from Drive URL");
+        }
+
+        // Execute transfer or share based on BusinessType
+        (bool success, string message) result;
+
+        if (mvp.DriveBusinessType == Domain.Entities.DriveBusinessType.Share)
+        {
+            // Share: Give buyer writer access (can view and edit)
+            result = await _googleDriveService.ShareFileAsync(
+                fileId,
+                sellerToken,
+                buyerEmail,
+                "writer"
+            );
+        }
+        else
+        {
+            // Transfer: Move ownership to buyer (default behavior)
+            result = await _googleDriveService.TransferOwnershipAsync(
+                fileId,
+                sellerToken,
+                buyerEmail
+            );
+        }
+
+        if (result.success)
+        {
+            // Atualizar status para WAITING_ACCEPTANCE (aguardando aceite do comprador)
+            transaction.Status = TransactionStatus.WAITING_ACCEPTANCE;
+            // CompletedAt permanece null até o comprador verificar
+            await _transactionRepository.UpdateAsync(transaction);
+        }
+
+        return result;
+    }
+
     public async Task<TransactionDto> VerifyTransferAsync(Guid transactionId, Guid userId)
     {
         var transaction = await _transactionRepository.GetByIdAsync(transactionId);
@@ -263,12 +344,31 @@ public class TransactionService : ITransactionService
 
         await _transactionRepository.UpdateAsync(transaction);
 
-        // Only transfer MVP ownership if BusinessType is Transfer
-        // For Fork, the seller retains ownership and can sell multiple times
+        // Only transfer MVP ownership if BusinessType is Transfer (not Fork/Share)
+        // For Fork (GitHub) or Share (Drive), the seller retains ownership and can sell multiple times
         var mvp = transaction.Mvp;
-        if (mvp != null && mvp.GitHubBusinessType != Domain.Entities.GitHubBusinessType.Fork)
+        if (mvp != null)
         {
-            await _transactionRepository.CompleteTransactionAsync(transactionId, userId);
+            bool shouldTransferOwnership = true;
+
+            // Check GitHub business type
+            if (mvp.ProductType == MvpProductType.GitHubRepo &&
+                mvp.GitHubBusinessType == Domain.Entities.GitHubBusinessType.Fork)
+            {
+                shouldTransferOwnership = false;
+            }
+
+            // Check Drive business type
+            if (mvp.ProductType == MvpProductType.Drive &&
+                mvp.DriveBusinessType == Domain.Entities.DriveBusinessType.Share)
+            {
+                shouldTransferOwnership = false;
+            }
+
+            if (shouldTransferOwnership)
+            {
+                await _transactionRepository.CompleteTransactionAsync(transactionId, userId);
+            }
         }
 
         // Recarregar para retornar DTO atualizado

@@ -124,6 +124,31 @@ public class TransactionController : ControllerBase
         }
     }
 
+    [HttpPost("transactions/{id}/transfer-drive")]
+    [Authorize]
+    public async Task<IActionResult> TransferDrive(Guid id, [FromBody] TransferDriveRequest request)
+    {
+        try
+        {
+            var (success, message) = await _transactionService.TransferDriveFileAsync(
+                id,
+                request.SellerToken,
+                request.BuyerEmail
+            );
+
+            if (success)
+            {
+                return Ok(new { message = "Drive file shared/transferred successfully! Buyer should check their Google Drive." });
+            }
+
+            return BadRequest(new { message });
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+    }
+
     [HttpPost("transactions/{id}/verify-transfer")]
     [Authorize]
     public async Task<IActionResult> VerifyTransfer(Guid id)

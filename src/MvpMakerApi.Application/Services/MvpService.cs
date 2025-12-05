@@ -49,8 +49,11 @@ public class MvpService : IMvpService
             ProductType = Enum.Parse<MvpProductType>(request.ProductType),
             Link = request.Link,
             PreviewLink = request.PreviewLink,
-            GitHubBusinessType = !string.IsNullOrEmpty(request.GitHubBusinessType) 
-                ? Enum.Parse<Domain.Entities.GitHubBusinessType>(request.GitHubBusinessType) 
+            GitHubBusinessType = !string.IsNullOrEmpty(request.GitHubBusinessType)
+                ? Enum.Parse<Domain.Entities.GitHubBusinessType>(request.GitHubBusinessType)
+                : null,
+            DriveBusinessType = !string.IsNullOrEmpty(request.DriveBusinessType)
+                ? Enum.Parse<Domain.Entities.DriveBusinessType>(request.DriveBusinessType)
                 : null
         };
 
@@ -82,8 +85,11 @@ public class MvpService : IMvpService
         mvp.ProductType = Enum.Parse<MvpProductType>(request.ProductType);
         mvp.Link = request.Link;
         mvp.PreviewLink = request.PreviewLink;
-        mvp.GitHubBusinessType = !string.IsNullOrEmpty(request.GitHubBusinessType) 
-            ? Enum.Parse<Domain.Entities.GitHubBusinessType>(request.GitHubBusinessType) 
+        mvp.GitHubBusinessType = !string.IsNullOrEmpty(request.GitHubBusinessType)
+            ? Enum.Parse<Domain.Entities.GitHubBusinessType>(request.GitHubBusinessType)
+            : null;
+        mvp.DriveBusinessType = !string.IsNullOrEmpty(request.DriveBusinessType)
+            ? Enum.Parse<Domain.Entities.DriveBusinessType>(request.DriveBusinessType)
             : null;
 
         await _mvpRepository.UpdateAsync(mvp);
@@ -178,7 +184,8 @@ public class MvpService : IMvpService
             ProductType = mvp.ProductType.ToString(),
             Link = mvp.Link,
             PreviewLink = mvp.PreviewLink,
-            GitHubBusinessType = mvp.GitHubBusinessType?.ToString()
+            GitHubBusinessType = mvp.GitHubBusinessType?.ToString(),
+            DriveBusinessType = mvp.DriveBusinessType?.ToString()
         };
     }
 
@@ -209,7 +216,8 @@ public class MvpService : IMvpService
             ProductType = mvp.ProductType.ToString(),
             Link = mvp.Link,
             PreviewLink = mvp.PreviewLink,
-            GitHubBusinessType = mvp.GitHubBusinessType?.ToString()
+            GitHubBusinessType = mvp.GitHubBusinessType?.ToString(),
+            DriveBusinessType = mvp.DriveBusinessType?.ToString()
         };
     }
 }
