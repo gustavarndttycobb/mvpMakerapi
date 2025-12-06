@@ -33,7 +33,7 @@ public class StripePaymentService : IPaymentService
         Guid transactionId,
         string productName,
         decimal amount,
-        string currency = "brl")
+        string currency = "usd")
     {
         try
         {
