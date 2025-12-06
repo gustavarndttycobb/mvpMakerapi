@@ -30,6 +30,9 @@ public static class DependencyInjection
         // Payment Services
         services.AddScoped<IPaymentService, Services.StripePaymentService>();
 
+        // Security
+        services.AddSingleton<IEncryptionService, EncryptionService>();
+
         return services;
     }
 }

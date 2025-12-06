@@ -14,13 +14,46 @@ public class UserController : ControllerBase
 {
     private readonly IMvpService _mvpService;
     private readonly IUserRepository _userRepository;
+    private readonly IEncryptionService _encryptionService;
 
     public UserController(
         IMvpService mvpService,
-        IUserRepository userRepository)
+        IUserRepository userRepository,
+        IEncryptionService encryptionService)
     {
         _mvpService = mvpService;
         _userRepository = userRepository;
+        _encryptionService = encryptionService;
+    }
+
+    [HttpPut("credentials")]
+    public async Task<IActionResult> UpdateCredentials([FromBody] UpdateCredentialsRequest request)
+    {
+        try
+        {
+            var userId = Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value!);
+            var user = await _userRepository.GetByIdAsync(userId);
+
+            if (user == null) return NotFound(new { message = "User not found" });
+
+            if (!string.IsNullOrEmpty(request.GitHubToken))
+            {
+                user.GitHubToken = _encryptionService.EncryptData(request.GitHubToken);
+            }
+
+            if (!string.IsNullOrEmpty(request.GoogleDriveToken))
+            {
+                user.GoogleDriveToken = _encryptionService.EncryptData(request.GoogleDriveToken);
+            }
+
+            await _userRepository.UpdateAsync(user);
+
+            return Ok(new { message = "Credentials updated successfully" });
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
     }
 
     [HttpGet("me")]
@@ -43,7 +76,9 @@ public class UserController : ControllerBase
         {
             id = user.Id,
             name = user.Name,
-            email = user.Email
+            email = user.Email,
+            hasGitHubToken = !string.IsNullOrEmpty(user.GitHubToken),
+            hasDriveToken = !string.IsNullOrEmpty(user.GoogleDriveToken)
         });
     }
 
@@ -63,4 +98,10 @@ public class UserController : ControllerBase
             return BadRequest(new { message = ex.Message });
         }
     }
+}
+
+public class UpdateCredentialsRequest
+{
+    public string? GitHubToken { get; set; }
+    public string? GoogleDriveToken { get; set; }
 }

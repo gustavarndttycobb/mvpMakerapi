@@ -13,6 +13,7 @@ public class TransactionService : ITransactionService
     private readonly IGitHubService _gitHubService;
     private readonly IGoogleDriveService _googleDriveService;
     private readonly IPaymentService _paymentService;
+    private readonly IEncryptionService _encryptionService;
 
     public TransactionService(
         ITransactionRepository transactionRepository,
@@ -20,7 +21,8 @@ public class TransactionService : ITransactionService
         IUserRepository userRepository,
         IGitHubService gitHubService,
         IGoogleDriveService googleDriveService,
-        IPaymentService paymentService)
+        IPaymentService paymentService,
+        IEncryptionService encryptionService)
     {
         _transactionRepository = transactionRepository;
         _mvpRepository = mvpRepository;
@@ -28,6 +30,7 @@ public class TransactionService : ITransactionService
         _gitHubService = gitHubService;
         _googleDriveService = googleDriveService;
         _paymentService = paymentService;
+        _encryptionService = encryptionService;
     }
 
     public async Task<PurchaseResponse> InitiatePurchaseAsync(Guid mvpId, Guid buyerId)
@@ -63,6 +66,42 @@ public class TransactionService : ITransactionService
         // GitHubRepo e Drive requerem transferência/compartilhamento pelo vendedor
         var requiresTransfer = mvp.ProductType == MvpProductType.GitHubRepo ||
                                mvp.ProductType == MvpProductType.Drive;
+
+        // VALIDAÇÃO DE CREDENCIAIS DO VENDEDOR (NOVO)
+        if (requiresTransfer)
+        {
+            var seller = await _userRepository.GetByIdAsync(mvp.OwnerId);
+            if (seller == null) throw new Exception("Seller not found");
+
+            if (mvp.ProductType == MvpProductType.GitHubRepo)
+            {
+                if (string.IsNullOrEmpty(seller.GitHubToken))
+                {
+                    throw new InvalidOperationException("Seller has not configured GitHub credentials. Purchase cannot proceed.");
+                }
+
+                var token = _encryptionService.DecryptData(cipherText: seller.GitHubToken!);
+                var (isValid, _) = await _gitHubService.ValidateTokenAsync(token);
+                if (!isValid)
+                {
+                    throw new InvalidOperationException("Seller's GitHub credentials are invalid or expired. Purchase cannot proceed.");
+                }
+            }
+            else if (mvp.ProductType == MvpProductType.Drive)
+            {
+                if (string.IsNullOrEmpty(seller.GoogleDriveToken))
+                {
+                    throw new InvalidOperationException("Seller has not configured Google Drive credentials. Purchase cannot proceed.");
+                }
+
+                var token = _encryptionService.DecryptData(cipherText: seller.GoogleDriveToken!);
+                var (isValid, _) = await _googleDriveService.ValidateTokenAsync(token);
+                if (!isValid)
+                {
+                    throw new InvalidOperationException("Seller's Google Drive credentials are invalid or expired. Purchase cannot proceed.");
+                }
+            }
+        }
 
         var initialStatus = requiresTransfer
             ? TransactionStatus.PENDING_TRANSFER

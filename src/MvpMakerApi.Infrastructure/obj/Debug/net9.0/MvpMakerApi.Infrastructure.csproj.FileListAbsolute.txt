@@ -1,4 +1,5 @@
 C:\Pessoal\mvpMakerApi\src\MvpMakerApi.Infrastructure\bin\Debug\net9.0\MvpMakerApi.Infrastructure.deps.json
+C:\Pessoal\mvpMakerApi\src\MvpMakerApi.Infrastructure\bin\Debug\net9.0\MvpMakerApi.Infrastructure.runtimeconfig.json
 C:\Pessoal\mvpMakerApi\src\MvpMakerApi.Infrastructure\bin\Debug\net9.0\MvpMakerApi.Infrastructure.dll
 C:\Pessoal\mvpMakerApi\src\MvpMakerApi.Infrastructure\bin\Debug\net9.0\MvpMakerApi.Infrastructure.pdb
 C:\Pessoal\mvpMakerApi\src\MvpMakerApi.Infrastructure\bin\Debug\net9.0\MvpMakerApi.Application.dll
@@ -15,6 +16,5 @@ C:\Pessoal\mvpMakerApi\src\MvpMakerApi.Infrastructure\obj\Debug\net9.0\MvpMaker.
 C:\Pessoal\mvpMakerApi\src\MvpMakerApi.Infrastructure\obj\Debug\net9.0\MvpMakerApi.Infrastructure.dll
 C:\Pessoal\mvpMakerApi\src\MvpMakerApi.Infrastructure\obj\Debug\net9.0\refint\MvpMakerApi.Infrastructure.dll
 C:\Pessoal\mvpMakerApi\src\MvpMakerApi.Infrastructure\obj\Debug\net9.0\MvpMakerApi.Infrastructure.pdb
-C:\Pessoal\mvpMakerApi\src\MvpMakerApi.Infrastructure\obj\Debug\net9.0\ref\MvpMakerApi.Infrastructure.dll
-C:\Pessoal\mvpMakerApi\src\MvpMakerApi.Infrastructure\bin\Debug\net9.0\MvpMakerApi.Infrastructure.runtimeconfig.json
 C:\Pessoal\mvpMakerApi\src\MvpMakerApi.Infrastructure\obj\Debug\net9.0\MvpMakerApi.Infrastructure.genruntimeconfig.cache
+C:\Pessoal\mvpMakerApi\src\MvpMakerApi.Infrastructure\obj\Debug\net9.0\ref\MvpMakerApi.Infrastructure.dll
