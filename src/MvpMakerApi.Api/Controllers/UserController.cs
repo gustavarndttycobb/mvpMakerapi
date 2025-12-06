@@ -27,7 +27,7 @@ public class UserController : ControllerBase
     public async Task<IActionResult> GetCurrentUser()
     {
         var userIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        
+
         if (string.IsNullOrEmpty(userIdStr) || !Guid.TryParse(userIdStr, out var userId))
         {
             return Unauthorized(new { message = "Invalid token" });
@@ -43,8 +43,7 @@ public class UserController : ControllerBase
         {
             id = user.Id,
             name = user.Name,
-            email = user.Email,
-            balance = user.Balance
+            email = user.Email
         });
     }
 

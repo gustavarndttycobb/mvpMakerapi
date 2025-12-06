@@ -171,6 +171,8 @@ public class PurchaseResponse
     public string Status { get; set; } = string.Empty;
     public decimal Amount { get; set; }
     public string Message { get; set; } = string.Empty;
+    public string? CheckoutUrl { get; set; }
+    public string? CheckoutSessionId { get; set; }
 }
 
 // GitHub DTOs
