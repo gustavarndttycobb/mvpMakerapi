@@ -83,7 +83,6 @@ builder.Services.AddScoped<IJwtService, JwtService>(provider =>
 builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<ITechnologyService, TechnologyService>();
 builder.Services.AddScoped<ITransactionService, TransactionService>();
-builder.Services.AddScoped<IWalletService, WalletService>();
 
 // GitHub Integration
 builder.Services.AddHttpClient<IGitHubService, GitHubService>();
