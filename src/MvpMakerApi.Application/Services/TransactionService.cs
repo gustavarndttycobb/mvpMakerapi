@@ -12,19 +12,22 @@ public class TransactionService : ITransactionService
     private readonly IUserRepository _userRepository;
     private readonly IGitHubService _gitHubService;
     private readonly IGoogleDriveService _googleDriveService;
+    private readonly IPaymentService _paymentService;
 
     public TransactionService(
         ITransactionRepository transactionRepository,
         IMvpRepository mvpRepository,
         IUserRepository userRepository,
         IGitHubService gitHubService,
-        IGoogleDriveService googleDriveService)
+        IGoogleDriveService googleDriveService,
+        IPaymentService paymentService)
     {
         _transactionRepository = transactionRepository;
         _mvpRepository = mvpRepository;
         _userRepository = userRepository;
         _gitHubService = gitHubService;
         _googleDriveService = googleDriveService;
+        _paymentService = paymentService;
     }
 
     public async Task<PurchaseResponse> InitiatePurchaseAsync(Guid mvpId, Guid buyerId)
@@ -88,12 +91,28 @@ public class TransactionService : ITransactionService
 
         await _transactionRepository.CreateAsync(transaction);
 
+        // 7. Criar sessão de checkout do Stripe
+        var checkoutResult = await _paymentService.CreateCheckoutSessionAsync(
+            transaction.Id,
+            mvp.Name,
+            mvp.Price
+        );
+
+        // 8. Salvar IDs do Stripe na transação
+        if (checkoutResult.Success)
+        {
+            transaction.StripeSessionId = checkoutResult.SessionId;
+            await _transactionRepository.UpdateAsync(transaction);
+        }
+
         return new PurchaseResponse
         {
             TransactionId = transaction.Id,
             Status = transaction.Status.ToString(),
             Amount = transaction.Amount,
-            Message = message
+            Message = message,
+            CheckoutUrl = checkoutResult.SessionUrl,
+            CheckoutSessionId = checkoutResult.SessionId
         };
     }
 

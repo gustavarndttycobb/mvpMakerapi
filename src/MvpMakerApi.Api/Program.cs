@@ -9,6 +9,10 @@ using MvpMakerApi.Application.Interfaces;
 using MvpMakerApi.Application.Services;
 using MvpMakerApi.Domain.Interfaces;
 using MvpMakerApi.Infrastructure.Services;
+using DotNetEnv;
+
+// Load .env file
+Env.Load();
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -73,7 +77,7 @@ var jwtIssuer = builder.Configuration["Jwt:Issuer"] ?? "MvpMakerApi";
 var jwtAudience = builder.Configuration["Jwt:Audience"] ?? "MvpMakerApiClient";
 var jwtExpirationMinutes = int.Parse(builder.Configuration["Jwt:ExpirationMinutes"] ?? "60");
 
-builder.Services.AddScoped<IJwtService, JwtService>(provider => 
+builder.Services.AddScoped<IJwtService, JwtService>(provider =>
     new JwtService(jwtSecretKey, jwtIssuer, jwtAudience, jwtExpirationMinutes));
 
 builder.Services.AddScoped<ICategoryService, CategoryService>();

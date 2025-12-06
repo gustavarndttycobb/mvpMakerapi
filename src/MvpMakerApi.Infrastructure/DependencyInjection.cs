@@ -27,6 +27,9 @@ public static class DependencyInjection
         services.AddHttpClient<IGitHubService, Services.GitHubService>();
         services.AddHttpClient<IGoogleDriveService, Services.GoogleDriveService>();
 
+        // Payment Services
+        services.AddScoped<IPaymentService, Services.StripePaymentService>();
+
         return services;
     }
 }

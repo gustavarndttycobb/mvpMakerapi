@@ -134,3 +134,9 @@ C:\Pessoal\mvpMakerApi\src\MvpMakerApi.Api\bin\Debug\net9.0\Microsoft.IdentityMo
 C:\Pessoal\mvpMakerApi\src\MvpMakerApi.Api\bin\Debug\net9.0\Microsoft.IdentityModel.Protocols.OpenIdConnect.dll
 C:\Pessoal\mvpMakerApi\src\MvpMakerApi.Api\bin\Debug\net9.0\Microsoft.IdentityModel.Tokens.dll
 C:\Pessoal\mvpMakerApi\src\MvpMakerApi.Api\bin\Debug\net9.0\System.IdentityModel.Tokens.Jwt.dll
+C:\Pessoal\mvpMakerApi\src\MvpMakerApi.Api\bin\Debug\net9.0\Newtonsoft.Json.dll
+C:\Pessoal\mvpMakerApi\src\MvpMakerApi.Api\bin\Debug\net9.0\Stripe.net.dll
+C:\Pessoal\mvpMakerApi\src\MvpMakerApi.Api\bin\Debug\net9.0\System.Configuration.ConfigurationManager.dll
+C:\Pessoal\mvpMakerApi\src\MvpMakerApi.Api\bin\Debug\net9.0\System.Security.Cryptography.ProtectedData.dll
+C:\Pessoal\mvpMakerApi\src\MvpMakerApi.Api\bin\Debug\net9.0\DotNetEnv.dll
+C:\Pessoal\mvpMakerApi\src\MvpMakerApi.Api\bin\Debug\net9.0\Sprache.dll
