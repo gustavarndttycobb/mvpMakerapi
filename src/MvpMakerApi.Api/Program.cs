@@ -80,6 +80,12 @@ var jwtExpirationMinutes = int.Parse(builder.Configuration["Jwt:ExpirationMinute
 builder.Services.AddScoped<IJwtService, JwtService>(provider =>
     new JwtService(jwtSecretKey, jwtIssuer, jwtAudience, jwtExpirationMinutes));
 
+builder.Services.AddScoped<IEncryptionService>(provider =>
+{
+    var encryptionKey = builder.Configuration["Encryption:Key"] ?? "default-encryption-key-change-in-production-min-32-chars";
+    return new EncryptionService(encryptionKey);
+});
+
 builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<ITechnologyService, TechnologyService>();
 builder.Services.AddScoped<ITransactionService, TransactionService>();

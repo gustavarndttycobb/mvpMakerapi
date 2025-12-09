@@ -24,7 +24,7 @@ public class TransactionController : ControllerBase
         try
         {
             var buyerId = Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value!);
-            var result = await _transactionService.InitiatePurchaseAsync(id, buyerId);
+            var result = await _transactionService.InitiatePurchaseAsync(id, buyerId, request);
             return Ok(result);
         }
         catch (InvalidOperationException ex)
@@ -105,9 +105,8 @@ public class TransactionController : ControllerBase
     {
         try
         {
-            var (success, message) = await _transactionService.TransferGitHubRepositoryAsync(
+            (bool success, string message) = await _transactionService.TransferGitHubRepositoryAsync(
                 id,
-                request.SellerToken,
                 request.BuyerUsername
             );
 
@@ -130,9 +129,8 @@ public class TransactionController : ControllerBase
     {
         try
         {
-            var (success, message) = await _transactionService.TransferDriveFileAsync(
+            (bool success, string message) = await _transactionService.TransferDriveFileAsync(
                 id,
-                request.SellerToken,
                 request.BuyerEmail
             );
 
