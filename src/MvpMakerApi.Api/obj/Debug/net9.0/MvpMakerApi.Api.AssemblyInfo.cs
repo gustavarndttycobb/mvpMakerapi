@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("MvpMakerApi.Api")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+ed86b5825dba4a8dec8b4472ed80ec37727d174a")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+93dab2570e92ad70ac79f5faff5cca08d528b7f7")]
 [assembly: System.Reflection.AssemblyProductAttribute("MvpMakerApi.Api")]
 [assembly: System.Reflection.AssemblyTitleAttribute("MvpMakerApi.Api")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

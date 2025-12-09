@@ -10,4 +10,5 @@ public interface ITransactionRepository
     Task<(List<Transaction> Items, int TotalCount)> GetByUserIdAsync(Guid userId, int pageNumber, int pageSize);
     Task UpdateAsync(Transaction transaction);
     Task CompleteTransactionAsync(Guid transactionId, Guid newOwnerId);
+    Task<List<Transaction>> GetAllAsync();
 }

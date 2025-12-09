@@ -10,4 +10,5 @@ public interface IMvpService
     Task<List<MvpDto>> GetMvpListAsync(MvpListQuery query);
     Task<MvpDetailsDto> GetMvpDetailsAsync(Guid id);
     Task<PagedResult<MvpDto>> GetUserMvpsAsync(Guid userId, int pageNumber, int pageSize);
+    Task<ValidateTokenResponse> ValidateMvpTokenAsync(Guid mvpId);
 }

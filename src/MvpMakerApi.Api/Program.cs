@@ -93,6 +93,10 @@ builder.Services.AddScoped<ITransactionService, TransactionService>();
 // GitHub Integration
 builder.Services.AddHttpClient<IGitHubService, GitHubService>();
 
+// Background Service for automatic transfer processing
+// This is a workaround for when Stripe webhooks are not configured
+builder.Services.AddHostedService<MvpMakerApi.Infrastructure.Services.TransferBackgroundService>();
+
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;

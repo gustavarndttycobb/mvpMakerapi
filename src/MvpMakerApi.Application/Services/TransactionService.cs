@@ -13,6 +13,7 @@ public class TransactionService : ITransactionService
     private readonly IGitHubService _gitHubService;
     private readonly IGoogleDriveService _googleDriveService;
     private readonly IPaymentService _paymentService;
+    private readonly IEncryptionService _encryptionService;
 
     public TransactionService(
         ITransactionRepository transactionRepository,
@@ -20,7 +21,8 @@ public class TransactionService : ITransactionService
         IUserRepository userRepository,
         IGitHubService gitHubService,
         IGoogleDriveService googleDriveService,
-        IPaymentService paymentService)
+        IPaymentService paymentService,
+        IEncryptionService encryptionService)
     {
         _transactionRepository = transactionRepository;
         _mvpRepository = mvpRepository;
@@ -28,9 +30,10 @@ public class TransactionService : ITransactionService
         _gitHubService = gitHubService;
         _googleDriveService = googleDriveService;
         _paymentService = paymentService;
+        _encryptionService = encryptionService;
     }
 
-    public async Task<PurchaseResponse> InitiatePurchaseAsync(Guid mvpId, Guid buyerId)
+    public async Task<PurchaseResponse> InitiatePurchaseAsync(Guid mvpId, Guid buyerId, PurchaseMvpRequest request)
     {
         // 1. Verificar se MVP existe
         var mvp = await _mvpRepository.GetByIdAsync(mvpId);
@@ -59,7 +62,17 @@ public class TransactionService : ITransactionService
             throw new Exception("Buyer not found");
         }
 
-        // 5. Determinar status inicial baseado no tipo de produto
+        // 5. Validate buyer identification based on product type
+        if (mvp.ProductType == MvpProductType.GitHubRepo && string.IsNullOrEmpty(request.BuyerGitHubUsername))
+        {
+            throw new ArgumentException("BuyerGitHubUsername is required for GitHubRepo products");
+        }
+        if (mvp.ProductType == MvpProductType.Drive && string.IsNullOrEmpty(request.BuyerGoogleEmail))
+        {
+            throw new ArgumentException("BuyerGoogleEmail is required for Drive products");
+        }
+
+        // 6. Determinar status inicial baseado no tipo de produto
         // GitHubRepo e Drive requerem transferência/compartilhamento pelo vendedor
         var requiresTransfer = mvp.ProductType == MvpProductType.GitHubRepo ||
                                mvp.ProductType == MvpProductType.Drive;
@@ -75,7 +88,7 @@ public class TransactionService : ITransactionService
             _ => "Purchase initiated. Complete payment to finalize transaction."
         };
 
-        // 6. Criar transação
+        // 7. Criar transação
         var transaction = new Transaction
         {
             MvpId = mvpId,
@@ -86,19 +99,19 @@ public class TransactionService : ITransactionService
             CreatedAt = DateTime.UtcNow,
             ProductType = mvp.ProductType.ToString(),
             RepoUrl = mvp.ProductType == MvpProductType.GitHubRepo ? mvp.Link : null,
-            BuyerGitHubUsername = null // Will be provided during transfer
+            BuyerGitHubUsername = request.BuyerGitHubUsername // Store buyer GitHub username
         };
 
         await _transactionRepository.CreateAsync(transaction);
 
-        // 7. Criar sessão de checkout do Stripe
+        // 8. Criar sessão de checkout do Stripe
         var checkoutResult = await _paymentService.CreateCheckoutSessionAsync(
             transaction.Id,
             mvp.Name,
             mvp.Price
         );
 
-        // 8. Salvar IDs do Stripe na transação
+        // 9. Salvar IDs do Stripe na transação
         if (checkoutResult.Success)
         {
             transaction.StripeSessionId = checkoutResult.SessionId;
@@ -202,7 +215,7 @@ public class TransactionService : ITransactionService
         };
     }
 
-    public async Task<(bool Success, string Message)> TransferGitHubRepositoryAsync(Guid transactionId, string sellerToken, string buyerUsername)
+    public async Task<(bool Success, string Message)> TransferGitHubRepositoryAsync(Guid transactionId, string buyerUsername)
     {
         var transaction = await _transactionRepository.GetByIdAsync(transactionId);
         if (transaction == null)
@@ -225,11 +238,27 @@ public class TransactionService : ITransactionService
             return (false, "Repository URL not found in transaction");
         }
 
-        // Get MVP to check BusinessType
+        // Get MVP to check BusinessType and retrieve encrypted token
         var mvp = transaction.Mvp;
         if (mvp == null)
         {
             return (false, "MVP not found");
+        }
+
+        // Retrieve and decrypt seller's GitHub PAT token
+        if (string.IsNullOrEmpty(mvp.GitHubPatToken))
+        {
+            return (false, "GitHub PAT token not found for this MVP. Please update MVP credentials.");
+        }
+
+        string sellerToken;
+        try
+        {
+            sellerToken = _encryptionService.Decrypt(mvp.GitHubPatToken);
+        }
+        catch (Exception ex)
+        {
+            return (false, $"Failed to decrypt GitHub token: {ex.Message}");
         }
 
         // Execute transfer or fork based on BusinessType
@@ -266,7 +295,7 @@ public class TransactionService : ITransactionService
         return result;
     }
 
-    public async Task<(bool Success, string Message)> TransferDriveFileAsync(Guid transactionId, string sellerToken, string buyerEmail)
+    public async Task<(bool Success, string Message)> TransferDriveFileAsync(Guid transactionId, string buyerEmail)
     {
         var transaction = await _transactionRepository.GetByIdAsync(transactionId);
         if (transaction == null)
@@ -284,7 +313,7 @@ public class TransactionService : ITransactionService
             return (false, "Transaction is not for a Google Drive file");
         }
 
-        // Get MVP to check BusinessType and get file link
+        // Get MVP to check BusinessType, get file link, and retrieve encrypted token
         var mvp = transaction.Mvp;
         if (mvp == null)
         {
@@ -294,6 +323,22 @@ public class TransactionService : ITransactionService
         if (string.IsNullOrEmpty(mvp.Link))
         {
             return (false, "Drive file URL not found in MVP");
+        }
+
+        // Retrieve and decrypt seller's Google OAuth token
+        if (string.IsNullOrEmpty(mvp.GoogleOAuthToken))
+        {
+            return (false, "Google OAuth token not found for this MVP. Please update MVP credentials.");
+        }
+
+        string sellerToken;
+        try
+        {
+            sellerToken = _encryptionService.Decrypt(mvp.GoogleOAuthToken);
+        }
+        catch (Exception ex)
+        {
+            return (false, $"Failed to decrypt Google OAuth token: {ex.Message}");
         }
 
         // Extract file ID from Drive URL

@@ -151,4 +151,23 @@ public class MvpController : ControllerBase
             });
         }
     }
+
+    [HttpGet("{id}/validate-token")]
+    public async Task<IActionResult> ValidateMvpToken(Guid id)
+    {
+        try
+        {
+            var result = await _mvpService.ValidateMvpTokenAsync(id);
+            return Ok(result);
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new ValidateTokenResponse
+            {
+                IsValid = false,
+                Message = $"Error validating MVP token: {ex.Message}",
+                Username = null
+            });
+        }
+    }
 }

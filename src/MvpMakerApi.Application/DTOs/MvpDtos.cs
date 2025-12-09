@@ -63,6 +63,10 @@ public class CreateMvpRequest
     public string PreviewLink { get; set; } = string.Empty;
     public string? GitHubBusinessType { get; set; } // Transfer or Fork (only for GitHubRepo)
     public string? DriveBusinessType { get; set; } // Transfer or Share (only for Drive)
+
+    // Credentials (will be encrypted before storage)
+    public string? GitHubPatToken { get; set; } // Required for GitHubRepo type
+    public string? GoogleOAuthToken { get; set; } // Required for Drive type
 }
 
 public class UpdateMvpRequest
@@ -85,6 +89,10 @@ public class UpdateMvpRequest
     public string PreviewLink { get; set; } = string.Empty;
     public string? GitHubBusinessType { get; set; } // Transfer or Fork (only for GitHubRepo)
     public string? DriveBusinessType { get; set; } // Transfer or Share (only for Drive)
+
+    // Credentials (will be encrypted before storage)
+    public string? GitHubPatToken { get; set; } // Optional: update token if provided
+    public string? GoogleOAuthToken { get; set; } // Optional: update token if provided
 }
 
 public class DeleteMvpRequest
@@ -162,7 +170,9 @@ public class TransactionDto
 
 public class PurchaseMvpRequest
 {
-    // Empty for now, can add payment method later
+    // Buyer identification (required based on MVP type)
+    public string? BuyerGitHubUsername { get; set; } // Required for GitHubRepo MVPs
+    public string? BuyerGoogleEmail { get; set; } // Required for Drive MVPs
 }
 
 public class PurchaseResponse

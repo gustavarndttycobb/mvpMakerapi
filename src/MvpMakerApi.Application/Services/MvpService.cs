@@ -9,11 +9,22 @@ public class MvpService : IMvpService
 {
     private readonly IMvpRepository _mvpRepository;
     private readonly IUserRepository _userRepository;
+    private readonly IEncryptionService _encryptionService;
+    private readonly IGitHubService _gitHubService;
+    private readonly IGoogleDriveService _googleDriveService;
 
-    public MvpService(IMvpRepository mvpRepository, IUserRepository userRepository)
+    public MvpService(
+        IMvpRepository mvpRepository,
+        IUserRepository userRepository,
+        IEncryptionService encryptionService,
+        IGitHubService gitHubService,
+        IGoogleDriveService googleDriveService)
     {
         _mvpRepository = mvpRepository;
         _userRepository = userRepository;
+        _encryptionService = encryptionService;
+        _gitHubService = gitHubService;
+        _googleDriveService = googleDriveService;
     }
 
     public async Task<MvpDto> CreateMvpAsync(CreateMvpRequest request, Guid userId)
@@ -28,6 +39,18 @@ public class MvpService : IMvpService
         if (request.ProductType == "GitHubRepo" && string.IsNullOrEmpty(request.GitHubBusinessType))
         {
             throw new ArgumentException("GitHubBusinessType is required for GitHubRepo products");
+        }
+
+        // Validate GitHubPatToken for GitHubRepo
+        if (request.ProductType == "GitHubRepo" && string.IsNullOrEmpty(request.GitHubPatToken))
+        {
+            throw new ArgumentException("GitHubPatToken is required for GitHubRepo products");
+        }
+
+        // Validate GoogleOAuthToken for Drive
+        if (request.ProductType == "Drive" && string.IsNullOrEmpty(request.GoogleOAuthToken))
+        {
+            throw new ArgumentException("GoogleOAuthToken is required for Drive products");
         }
 
         var mvp = new Mvp
@@ -54,6 +77,13 @@ public class MvpService : IMvpService
                 : null,
             DriveBusinessType = !string.IsNullOrEmpty(request.DriveBusinessType)
                 ? Enum.Parse<Domain.Entities.DriveBusinessType>(request.DriveBusinessType)
+                : null,
+            // Encrypt tokens before storing
+            GitHubPatToken = !string.IsNullOrEmpty(request.GitHubPatToken)
+                ? _encryptionService.Encrypt(request.GitHubPatToken)
+                : null,
+            GoogleOAuthToken = !string.IsNullOrEmpty(request.GoogleOAuthToken)
+                ? _encryptionService.Encrypt(request.GoogleOAuthToken)
                 : null
         };
 
@@ -91,6 +121,16 @@ public class MvpService : IMvpService
         mvp.DriveBusinessType = !string.IsNullOrEmpty(request.DriveBusinessType)
             ? Enum.Parse<Domain.Entities.DriveBusinessType>(request.DriveBusinessType)
             : null;
+
+        // Update tokens if provided (encrypt before storing)
+        if (!string.IsNullOrEmpty(request.GitHubPatToken))
+        {
+            mvp.GitHubPatToken = _encryptionService.Encrypt(request.GitHubPatToken);
+        }
+        if (!string.IsNullOrEmpty(request.GoogleOAuthToken))
+        {
+            mvp.GoogleOAuthToken = _encryptionService.Encrypt(request.GoogleOAuthToken);
+        }
 
         await _mvpRepository.UpdateAsync(mvp);
 
@@ -218,6 +258,99 @@ public class MvpService : IMvpService
             PreviewLink = mvp.PreviewLink,
             GitHubBusinessType = mvp.GitHubBusinessType?.ToString(),
             DriveBusinessType = mvp.DriveBusinessType?.ToString()
+        };
+    }
+
+    public async Task<ValidateTokenResponse> ValidateMvpTokenAsync(Guid mvpId)
+    {
+        var mvp = await _mvpRepository.GetByIdAsync(mvpId);
+        if (mvp == null)
+        {
+            return new ValidateTokenResponse
+            {
+                IsValid = false,
+                Message = "MVP not found",
+                Username = null
+            };
+        }
+
+        // Validate based on product type
+        if (mvp.ProductType == MvpProductType.GitHubRepo)
+        {
+            if (string.IsNullOrEmpty(mvp.GitHubPatToken))
+            {
+                return new ValidateTokenResponse
+                {
+                    IsValid = false,
+                    Message = "GitHub PAT token not found for this MVP",
+                    Username = null
+                };
+            }
+
+            try
+            {
+                var decryptedToken = _encryptionService.Decrypt(mvp.GitHubPatToken);
+                // Actually validate the token with GitHub API
+                var (isValid, username) = await _gitHubService.ValidateTokenAsync(decryptedToken);
+
+                return new ValidateTokenResponse
+                {
+                    IsValid = isValid,
+                    Message = isValid ? "GitHub token is valid" : "GitHub token is invalid or expired",
+                    Username = username
+                };
+            }
+            catch (Exception ex)
+            {
+                return new ValidateTokenResponse
+                {
+                    IsValid = false,
+                    Message = $"Failed to decrypt GitHub token: {ex.Message}",
+                    Username = null
+                };
+            }
+        }
+        else if (mvp.ProductType == MvpProductType.Drive)
+        {
+            if (string.IsNullOrEmpty(mvp.GoogleOAuthToken))
+            {
+                return new ValidateTokenResponse
+                {
+                    IsValid = false,
+                    Message = "Google OAuth token not found for this MVP",
+                    Username = null
+                };
+            }
+
+            try
+            {
+                var decryptedToken = _encryptionService.Decrypt(mvp.GoogleOAuthToken);
+                // Actually validate the token with Google Drive API
+                var (isValid, email) = await _googleDriveService.ValidateTokenAsync(decryptedToken);
+
+                return new ValidateTokenResponse
+                {
+                    IsValid = isValid,
+                    Message = isValid ? "Google Drive token is valid" : "Google Drive token is invalid or expired",
+                    Username = email
+                };
+            }
+            catch (Exception ex)
+            {
+                return new ValidateTokenResponse
+                {
+                    IsValid = false,
+                    Message = $"Failed to decrypt Google OAuth token: {ex.Message}",
+                    Username = null
+                };
+            }
+        }
+
+        return new ValidateTokenResponse
+        {
+            IsValid = false,
+            Message = "Unknown product type",
+            Username = null
         };
     }
 }
