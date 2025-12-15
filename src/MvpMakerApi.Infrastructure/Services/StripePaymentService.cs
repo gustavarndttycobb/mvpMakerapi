@@ -1,5 +1,7 @@
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using MvpMakerApi.Domain.Interfaces;
+using MvpMakerApi.Application.Interfaces;
 using Stripe;
 using Stripe.Checkout;
 
@@ -8,13 +10,32 @@ namespace MvpMakerApi.Infrastructure.Services;
 public class StripePaymentService : IPaymentService
 {
     private readonly IConfiguration _configuration;
+    private readonly ITransactionRepository _transactionRepository;
+    private readonly IMvpRepository _mvpRepository;
+    private readonly IGitHubService _gitHubService;
+    private readonly IGoogleDriveService _googleDriveService;
+    private readonly IEncryptionService _encryptionService;
+    private readonly ILogger<StripePaymentService> _logger;
     private readonly string _successUrl;
     private readonly string _cancelUrl;
     private readonly string _webhookSecret;
 
-    public StripePaymentService(IConfiguration configuration)
+    public StripePaymentService(
+        IConfiguration configuration,
+        ITransactionRepository transactionRepository,
+        IMvpRepository mvpRepository,
+        IGitHubService gitHubService,
+        IGoogleDriveService googleDriveService,
+        IEncryptionService encryptionService,
+        ILogger<StripePaymentService> logger)
     {
         _configuration = configuration;
+        _transactionRepository = transactionRepository;
+        _mvpRepository = mvpRepository;
+        _gitHubService = gitHubService;
+        _googleDriveService = googleDriveService;
+        _encryptionService = encryptionService;
+        _logger = logger;
 
         // Try environment variable first, then config
         var secretKey = Environment.GetEnvironmentVariable("STRIPE_SECRET_KEY")
@@ -85,7 +106,7 @@ public class StripePaymentService : IPaymentService
         }
     }
 
-    public Task<bool> HandleWebhookAsync(string json, string signature)
+    public async Task<bool> HandleWebhookAsync(string json, string signature)
     {
         try
         {
@@ -95,23 +116,144 @@ public class StripePaymentService : IPaymentService
                 _webhookSecret
             );
 
+            _logger.LogInformation("Received Stripe webhook event: {EventType}", stripeEvent.Type);
+
             // Handle the checkout.session.completed event
             if (stripeEvent.Type == "checkout.session.completed")
             {
                 var session = stripeEvent.Data.Object as Session;
-                if (session != null)
+                if (session != null && session.Metadata.TryGetValue("transactionId", out var transactionIdStr))
                 {
-                    // Return true to indicate successful processing
-                    // The actual transaction update will be done by the caller
-                    return Task.FromResult(true);
+                    if (Guid.TryParse(transactionIdStr, out var transactionId))
+                    {
+                        _logger.LogInformation("Processing payment for transaction {TransactionId}", transactionId);
+
+                        // Get the transaction
+                        var transaction = await _transactionRepository.GetByIdAsync(transactionId);
+                        if (transaction == null)
+                        {
+                            _logger.LogError("Transaction {TransactionId} not found", transactionId);
+                            return false;
+                        }
+
+                        // Update transaction status to PAID
+                        transaction.Status = MvpMakerApi.Domain.Entities.TransactionStatus.PENDING_TRANSFER;
+                        transaction.StripeSessionId = session.Id;
+                        await _transactionRepository.UpdateAsync(transaction);
+
+                        _logger.LogInformation("Transaction {TransactionId} marked as PENDING_TRANSFER", transactionId);
+
+                        // Execute transfer automatically
+                        await ExecuteTransferAsync(transaction);
+
+                        return true;
+                    }
                 }
             }
 
-            return Task.FromResult(false);
+            return false;
         }
-        catch (StripeException)
+        catch (StripeException ex)
         {
-            return Task.FromResult(false);
+            _logger.LogError(ex, "Stripe webhook error");
+            return false;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error processing webhook");
+            return false;
+        }
+    }
+
+    private async Task ExecuteTransferAsync(MvpMakerApi.Domain.Entities.Transaction transaction)
+    {
+        _logger.LogInformation("=== STARTING TRANSFER EXECUTION for transaction {TransactionId} ===", transaction.Id);
+
+        try
+        {
+            // Get MVP to retrieve credentials
+            var mvp = await _mvpRepository.GetByIdAsync(transaction.MvpId);
+            if (mvp == null)
+            {
+                _logger.LogError("❌ MVP {MvpId} not found for transaction {TransactionId}", transaction.MvpId, transaction.Id);
+                return;
+            }
+
+            _logger.LogInformation("✅ MVP found: {MvpName} (ID: {MvpId})", mvp.Name, mvp.Id);
+
+            // Get buyer username from transaction
+            var buyerUsername = transaction.BuyerGitHubUsername;
+            if (string.IsNullOrEmpty(buyerUsername))
+            {
+                _logger.LogError("❌ Buyer username not found in transaction {TransactionId}", transaction.Id);
+                return;
+            }
+
+            _logger.LogInformation("✅ Buyer username: {BuyerUsername}", buyerUsername);
+
+            // Execute transfer based on product type
+            if (transaction.ProductType == "GitHubRepo")
+            {
+                _logger.LogInformation("📦 Product type: GitHubRepo");
+
+                if (string.IsNullOrEmpty(mvp.GitHubPatToken))
+                {
+                    _logger.LogError("❌ GitHub PAT token not found for MVP {MvpId}", mvp.Id);
+                    return;
+                }
+
+                _logger.LogInformation("✅ GitHub token exists (encrypted)");
+
+                // Decrypt token
+                string decryptedToken;
+                try
+                {
+                    decryptedToken = _encryptionService.Decrypt(mvp.GitHubPatToken);
+                    _logger.LogInformation("✅ Token decrypted successfully");
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "❌ Failed to decrypt GitHub token for MVP {MvpId}", mvp.Id);
+                    return;
+                }
+
+                _logger.LogInformation("🚀 Calling GitHub TransferRepositoryAsync...");
+                _logger.LogInformation("   Repo URL: {RepoUrl}", mvp.Link);
+                _logger.LogInformation("   Buyer: {BuyerUsername}", buyerUsername);
+
+                var (success, message) = await _gitHubService.TransferRepositoryAsync(
+                    mvp.Link,
+                    decryptedToken,
+                    buyerUsername
+                );
+
+                _logger.LogInformation("📬 GitHub API Response: Success={Success}, Message={Message}", success, message);
+
+                if (success)
+                {
+                    transaction.Status = MvpMakerApi.Domain.Entities.TransactionStatus.WAITING_ACCEPTANCE;
+                    await _transactionRepository.UpdateAsync(transaction);
+                    _logger.LogInformation("✅ GitHub transfer initiated successfully for transaction {TransactionId}", transaction.Id);
+                    _logger.LogInformation("✅ Transaction status updated to WAITING_ACCEPTANCE");
+                }
+                else
+                {
+                    _logger.LogError("❌ GitHub transfer failed for transaction {TransactionId}: {Message}", transaction.Id, message);
+                }
+            }
+            else
+            {
+                _logger.LogWarning("⚠️ Product type {ProductType} not handled yet", transaction.ProductType);
+            }
+
+            _logger.LogInformation("=== TRANSFER EXECUTION COMPLETED for transaction {TransactionId} ===", transaction.Id);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "💥 EXCEPTION in ExecuteTransferAsync for transaction {TransactionId}", transaction.Id);
+            _logger.LogError("Exception Type: {ExceptionType}", ex.GetType().Name);
+            _logger.LogError("Exception Message: {ExceptionMessage}", ex.Message);
+            _logger.LogError("Stack Trace: {StackTrace}", ex.StackTrace);
         }
     }
 

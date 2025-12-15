@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "RBNhP+P309o=",
+  "dgSpecHash": "Zx28QcL0zog=",
   "success": true,
   "projectFilePath": "C:\\Pessoal\\mvpMakerApi\\src\\MvpMakerApi.Infrastructure\\MvpMakerApi.Infrastructure.csproj",
   "expectedPackageFiles": [
@@ -30,6 +30,8 @@
     "C:\\Users\\gustavo.arndt\\.nuget\\packages\\microsoft.extensions.dependencymodel\\9.0.0\\microsoft.extensions.dependencymodel.9.0.0.nupkg.sha512",
     "C:\\Users\\gustavo.arndt\\.nuget\\packages\\microsoft.extensions.diagnostics\\9.0.0\\microsoft.extensions.diagnostics.9.0.0.nupkg.sha512",
     "C:\\Users\\gustavo.arndt\\.nuget\\packages\\microsoft.extensions.diagnostics.abstractions\\9.0.0\\microsoft.extensions.diagnostics.abstractions.9.0.0.nupkg.sha512",
+    "C:\\Users\\gustavo.arndt\\.nuget\\packages\\microsoft.extensions.fileproviders.abstractions\\9.0.0\\microsoft.extensions.fileproviders.abstractions.9.0.0.nupkg.sha512",
+    "C:\\Users\\gustavo.arndt\\.nuget\\packages\\microsoft.extensions.hosting.abstractions\\9.0.0\\microsoft.extensions.hosting.abstractions.9.0.0.nupkg.sha512",
     "C:\\Users\\gustavo.arndt\\.nuget\\packages\\microsoft.extensions.http\\9.0.0\\microsoft.extensions.http.9.0.0.nupkg.sha512",
     "C:\\Users\\gustavo.arndt\\.nuget\\packages\\microsoft.extensions.logging\\9.0.0\\microsoft.extensions.logging.9.0.0.nupkg.sha512",
     "C:\\Users\\gustavo.arndt\\.nuget\\packages\\microsoft.extensions.logging.abstractions\\9.0.0\\microsoft.extensions.logging.abstractions.9.0.0.nupkg.sha512",

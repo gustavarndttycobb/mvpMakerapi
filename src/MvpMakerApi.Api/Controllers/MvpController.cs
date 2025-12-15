@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MvpMakerApi.Application.DTOs;
 using MvpMakerApi.Application.Interfaces;
+using MvpMakerApi.Domain.Interfaces;
 using System.Security.Claims;
 
 namespace MvpMakerApi.Api.Controllers;
@@ -11,10 +12,14 @@ namespace MvpMakerApi.Api.Controllers;
 public class MvpController : ControllerBase
 {
     private readonly IMvpService _mvpService;
+    private readonly IGitHubService _gitHubService;
+    private readonly IGoogleDriveService _googleDriveService;
 
-    public MvpController(IMvpService mvpService)
+    public MvpController(IMvpService mvpService, IGitHubService gitHubService, IGoogleDriveService googleDriveService)
     {
         _mvpService = mvpService;
+        _gitHubService = gitHubService;
+        _googleDriveService = googleDriveService;
     }
 
     [HttpPost]
@@ -92,6 +97,77 @@ public class MvpController : ControllerBase
         catch (Exception ex)
         {
             return NotFound(new { message = ex.Message });
+        }
+    }
+
+    [HttpPost("validate-github-token")]
+    [Authorize]
+    public async Task<IActionResult> ValidateGitHubToken([FromBody] ValidateTokenRequest request)
+    {
+        try
+        {
+            var (isValid, username) = await _gitHubService.ValidateTokenAsync(request.Token);
+
+            return Ok(new ValidateTokenResponse
+            {
+                IsValid = isValid,
+                Message = isValid ? "GitHub token is valid" : "GitHub token is invalid or expired",
+                Username = username
+            });
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new ValidateTokenResponse
+            {
+                IsValid = false,
+                Message = $"Error validating GitHub token: {ex.Message}",
+                Username = null
+            });
+        }
+    }
+
+    [HttpPost("validate-drive-token")]
+    [Authorize]
+    public async Task<IActionResult> ValidateDriveToken([FromBody] ValidateTokenRequest request)
+    {
+        try
+        {
+            var (isValid, email) = await _googleDriveService.ValidateTokenAsync(request.Token);
+
+            return Ok(new ValidateTokenResponse
+            {
+                IsValid = isValid,
+                Message = isValid ? "Google Drive token is valid" : "Google Drive token is invalid or expired",
+                Username = email
+            });
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new ValidateTokenResponse
+            {
+                IsValid = false,
+                Message = $"Error validating Google Drive token: {ex.Message}",
+                Username = null
+            });
+        }
+    }
+
+    [HttpGet("{id}/validate-token")]
+    public async Task<IActionResult> ValidateMvpToken(Guid id)
+    {
+        try
+        {
+            var result = await _mvpService.ValidateMvpTokenAsync(id);
+            return Ok(result);
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new ValidateTokenResponse
+            {
+                IsValid = false,
+                Message = $"Error validating MVP token: {ex.Message}",
+                Username = null
+            });
         }
     }
 }

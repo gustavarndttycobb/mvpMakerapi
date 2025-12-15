@@ -61,10 +61,19 @@ public class TransactionRepository : ITransactionRepository
         await _context.SaveChangesAsync();
     }
 
+    public async Task<List<Transaction>> GetAllAsync()
+    {
+        return await _context.Transactions
+            .Include(t => t.Mvp)
+            .Include(t => t.Seller)
+            .Include(t => t.Buyer)
+            .ToListAsync();
+    }
+
     public async Task CompleteTransactionAsync(Guid transactionId, Guid newOwnerId)
     {
         using var dbTransaction = await _context.Database.BeginTransactionAsync();
-        
+
         try
         {
             // 1. Buscar transação

@@ -80,12 +80,22 @@ var jwtExpirationMinutes = int.Parse(builder.Configuration["Jwt:ExpirationMinute
 builder.Services.AddScoped<IJwtService, JwtService>(provider =>
     new JwtService(jwtSecretKey, jwtIssuer, jwtAudience, jwtExpirationMinutes));
 
+builder.Services.AddScoped<IEncryptionService>(provider =>
+{
+    var encryptionKey = builder.Configuration["Encryption:Key"] ?? "default-encryption-key-change-in-production-min-32-chars";
+    return new EncryptionService(encryptionKey);
+});
+
 builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<ITechnologyService, TechnologyService>();
 builder.Services.AddScoped<ITransactionService, TransactionService>();
 
 // GitHub Integration
 builder.Services.AddHttpClient<IGitHubService, GitHubService>();
+
+// Background Service for automatic transfer processing
+// This is a workaround for when Stripe webhooks are not configured
+builder.Services.AddHostedService<MvpMakerApi.Infrastructure.Services.TransferBackgroundService>();
 
 builder.Services.AddAuthentication(options =>
 {

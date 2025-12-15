@@ -28,6 +28,10 @@ public class Mvp
     public GitHubBusinessType? GitHubBusinessType { get; set; } // Only for GitHubRepo: Transfer or Fork
     public DriveBusinessType? DriveBusinessType { get; set; } // Only for Drive: Transfer or Share
 
+    // Encrypted Credentials (stored securely, never returned in DTOs)
+    public string? GitHubPatToken { get; set; } // Encrypted GitHub Personal Access Token
+    public string? GoogleOAuthToken { get; set; } // Encrypted Google OAuth Access Token
+
     // Details
     public List<string> Highlights { get; set; } = new();
     public string Objective { get; set; } = string.Empty;
